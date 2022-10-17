@@ -69,8 +69,6 @@ router.get('/owner/:id', async (req, res) => {
 // @desc    Create image upload
 // @access  Have to be private
 router.post("/", authRole(['Creator', 'Admin']), imgUpload.single("uploadImage"), async (req, res) => {
-
-    const iu_image = req.file ? req.file : null
     const { imageTitle, owner } = req.body
 
     // Simple validation
@@ -78,26 +76,40 @@ router.post("/", authRole(['Creator', 'Admin']), imgUpload.single("uploadImage")
         return res.status(400).json({ msg: imageTitle })
     }
 
-    try {
-        const newImageUpload = new ImageUpload({
-            imageTitle,
-            uploadImage: iu_image && iu_image.location,
-            owner
-        })
+    if (!req.file) {
+        //If the file is not uploaded, then throw custom error with message: FILE_MISSING
+        throw Error('FILE_MISSING')
+    }
 
-        const savedImageUpload = await newImageUpload.save()
+    else {
+        //If the file is uploaded
+        const imgUp_file = req.file
 
-        if (!savedImageUpload) throw Error('Something went wrong during creation! file size should not exceed 1MB')
+        try {
+            const imgUp = await ImageUpload.findOne({ imageTitle })
+            if (imgUp) throw Error('Failed! Image with that name already exists!')
 
-        res.status(200).json({
-            _id: savedImageUpload._id,
-            imageTitle: savedImageUpload.imageTitle,
-            uploadImage: savedImageUpload.uploadImage,
-            owner: savedImageUpload.owner
-        })
+            const newImgUp = new ImageUpload({
+                imageTitle,
+                uploadImage: imgUp_file.location,
+                owner
+            })
 
-    } catch (err) {
-        res.status(400).json({ msg: err.message })
+            const savedImgUp = await newImgUp.save()
+
+            if (!savedImgUp) throw Error('Something went wrong during creation! file size should not exceed 1MB')
+
+            res.status(200).json({
+                _id: savedImgUp._id,
+                imageTitle: savedImgUp.imageTitle,
+                uploadImage: savedImgUp.uploadImage,
+                owner: savedImgUp.owner,
+                createdAt: savedImgUp.createdAt,
+            })
+
+        } catch (err) {
+            res.status(400).json({ msg: err.message })
+        }
     }
 })
 

@@ -10,7 +10,7 @@ const imageUploadSchema = new Schema({
         type: String,
         required: true,
     },
-    post_image: String,
+    uploadImage: String,
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'user'

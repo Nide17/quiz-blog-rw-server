@@ -23,7 +23,7 @@ const fileFilter = (req, file, callback) => {
 // Uploading image locally if multer is working.
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, './]imageUploads')
+        callback(null, './imageUploads')
     },
     filename: (req, file, callback) => {
         const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
