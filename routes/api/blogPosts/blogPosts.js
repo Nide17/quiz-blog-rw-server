@@ -79,7 +79,7 @@ router.get('/postCategory/:id', async (req, res) => {
 router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_image"), async (req, res) => {
 
     const bp_image = req.file ? req.file : null
-    const { title, markdown, postCategory, creator } = req.body
+    const { title, markdown, postCategory, creator, bgColor } = req.body
 
     // Simple validation
     if (!title || !markdown || !postCategory || !creator) {
@@ -92,7 +92,8 @@ router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_ima
             post_image: bp_image && bp_image.location,
             markdown,
             postCategory,
-            creator
+            creator,
+            bgColor
         })
 
         const savedBlogPost = await newBlogPost.save()
@@ -106,6 +107,7 @@ router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_ima
             markdown: savedBlogPost.markdown,
             postCategory: savedBlogPost.postCategory,
             creator: savedBlogPost.creator,
+            bgColor: savedBlogPost.bgColor,
             slug: savedBlogPost.slug,
         })
 

@@ -28,7 +28,12 @@ const blogPostSchema = new Schema({
     creator: {
         type: Schema.Types.ObjectId,
         ref: 'user'
-    }
+    },
+    bgColor: {
+        type: String,
+        required: true,
+        default: '#f3f3f2'
+    },
 },
     {
         timestamps: true,
