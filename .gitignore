@@ -1,0 +1,46 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/client
+/client/node_modules
+/.pnp
+.pnp.js
+
+/.vscode
+
+# testing
+/coverage
+
+# production
+/client/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+/config
+/config/default.json
+/config/default copy.json
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+/deploy.txt
+* copy.js
+* copy.json
+* copy.md
+
+
+/client/src/components/questions/* copy.js
+/client/src/components/questions/* copy 1.js
+/client/src/components/questions/* cop 2.js
+/client/src/components/questions/* copy 3.js
+/client/src/components/questions/* copy 4.js
+
+.yarnrc
+.yarn
+client/.eslintcache
