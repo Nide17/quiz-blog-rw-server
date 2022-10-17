@@ -90,7 +90,7 @@ if (process.env.NODE_ENV === 'production') {
     //Let's create a post build script in package.json
 }
 
-//port to run on: env when deployed and 4000 locally/heroku
+//port to run on: env when deployed and 4000 locally/cyclic.app
 const port = process.env.PORT || 4000
 
 //When server started listen the port
