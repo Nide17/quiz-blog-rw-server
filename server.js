@@ -45,6 +45,7 @@ connectDB().catch(err => console.error(err))
 
 // Bring in routes from the api
 //Use routes / All requests going to the api/questions goes the questions variable at the top questions.js file
+app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
 app.use('/api/questions', require('./routes/api/questions'))
 app.use('/api/users', require('./routes/api/users'))
 app.use('/api/logs', require('./routes/api/logs'))
