@@ -70,12 +70,13 @@ app.use('/api/challengeScores', require('./routes/api/challenges/challengeScores
 // BlogPosts
 app.use('/api/blogPosts', require('./routes/api/blogPosts/blogPosts'))
 app.use('/api/postCategories', require('./routes/api/blogPosts/postCategories'))
+app.use('/api/imageUploads', require('./routes/api/blogPosts/imageUploads'))
 
 // School API
 app.use('/schoolsapi/schools', require('./routes/api/schoolsapi/schools'))
 app.use('/schoolsapi/levels', require('./routes/api/schoolsapi/levels'))
 app.use('/schoolsapi/faculties', require('./routes/api/schoolsapi/faculties'))
-app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
+// app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
 
 //Edit for deployment || serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
