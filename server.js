@@ -45,7 +45,6 @@ connectDB().catch(err => console.error(err))
 
 // Bring in routes from the api
 //Use routes / All requests going to the api/questions goes the questions variable at the top questions.js file
-app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
 app.use('/api/questions', require('./routes/api/questions'))
 app.use('/api/users', require('./routes/api/users'))
 app.use('/api/logs', require('./routes/api/logs'))
@@ -76,6 +75,7 @@ app.use('/api/postCategories', require('./routes/api/blogPosts/postCategories'))
 app.use('/schoolsapi/schools', require('./routes/api/schoolsapi/schools'))
 app.use('/schoolsapi/levels', require('./routes/api/schoolsapi/levels'))
 app.use('/schoolsapi/faculties', require('./routes/api/schoolsapi/faculties'))
+app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
 
 //Edit for deployment || serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
