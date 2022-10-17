@@ -1,49 +1,48 @@
 const config = require('config')
-const AWS = require('aws-sdk');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
-// const { v4: uuidv4 } = require('uuid');
+const AWS = require('aws-sdk')
+const multer = require('multer')
+const multerS3 = require('multer-s3')
 
 const s3Config = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
     Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket')
-});
+})
 
 const fileFilter = (req, file, callback) => {
 
-    const allowedFileTypes = ['image/jpeg', 'image/png', 'image/svg'];
+    const allowedFileTypes = ['image/jpeg', 'image/png', 'image/svg']
 
     if (allowedFileTypes.includes(file.mimetype)) {
-        callback(null, true);
+        callback(null, true)
     } else {
-        callback(null, false);
+        callback(null, false)
     }
 }
 
 // Uploading image locally if multer is working.
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, './profiles');
+        callback(null, './profiles')
     },
     filename: (req, file, callback) => {
-        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-');
+        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
         callback(null, req.params.id + '-' + fileName)
     }
-});
+})
 
 // Uploading image to aws
 const multerS3Config = multerS3({
     s3: s3Config,
     bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket'),
     metadata: (req, file, callback) => {
-        callback(null, { fieldName: file.fieldname });
+        callback(null, { fieldName: file.fieldname })
     },
     key: (req, file, callback) => {
-        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-');
+        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
         callback(null, req.params.id + '-' + fileName)
     }
-});
+})
 
 const upload = multer({
     storage: multerS3Config,
@@ -53,4 +52,4 @@ const upload = multer({
     }
 })
 
-exports.profileUpload = upload;
+exports.profileUpload = upload
