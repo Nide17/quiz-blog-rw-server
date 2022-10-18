@@ -52,7 +52,7 @@ router.get('/:id', (req, res) => {
 // @route   GET /api/imageUploads/owner/:id
 // @desc    Get imageUploads by owner
 // @access  Needs to private
-router.get('/owner/:id', async (req, res) => {
+router.get('/imageOwner/:id', async (req, res) => {
 
     //Find the image uploads by owner
     ImageUpload.find({ owner: req.params.id })
