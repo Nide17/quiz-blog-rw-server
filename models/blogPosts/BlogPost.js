@@ -1,9 +1,9 @@
 // Bring in Mongo
-const mongoose = require('mongoose');
-const slugify = require("slugify");
+const mongoose = require('mongoose')
+const slugify = require("slugify")
 
 //initialize Mongo schema
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 //BlogPost Schema
 const blogPostSchema = new Schema({
@@ -37,16 +37,16 @@ const blogPostSchema = new Schema({
 },
     {
         timestamps: true,
-    });
+    })
 
 blogPostSchema.pre("validate", function (next) {
-    const blogPost = this;
+    const blogPost = this
 
     if (blogPost.title) {
-        blogPost.slug = slugify(`${blogPost.title}`, { replacement: '-', lower: true, strict: true });
+        blogPost.slug = slugify(`${blogPost.title}`, { replacement: '-', lower: true, strict: true })
     }
-    next();
+    next()
 })
 
 //Export
-module.exports = mongoose.model("BlogPost", blogPostSchema);
+module.exports = mongoose.model("BlogPost", blogPostSchema)

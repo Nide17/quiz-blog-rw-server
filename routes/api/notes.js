@@ -102,12 +102,12 @@ router.get('/chapter/:id', auth, async (req, res) => {
 // @route   GET /api/notes/:id
 // @desc    Get one note
 // @access 
-router.get('/:id', async (req, res) => {
+router.get('/:noteSlug', async (req, res) => {
 
-    let id = req.params.id
+    let slg = req.params.noteSlug
     try {
-        //Find the note by id
-        const note = await Notes.findOne({ _id: id }).populate('courseCategory course chapter')
+        //Find the note by slg
+        const note = await Notes.findOne({ slug: slg }).populate('courseCategory course chapter')
         if (!note) throw Error('Notes Does not exist!')
         res.status(200).json(note)
 
@@ -167,6 +167,7 @@ router.post('/', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'
                 chapter: savedNotes.chapter,
                 created_by: savedNotes.created_by,
                 createdAt: savedNotes.createdAt,
+                slug: savedNotes.slug
             })
 
         } catch (err) {

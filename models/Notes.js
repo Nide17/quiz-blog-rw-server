@@ -1,8 +1,8 @@
 // Bring in Mongo
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 //initialize Mongo schema
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 //create a schema object
 const NotesSchema = new Schema({
@@ -35,7 +35,7 @@ const NotesSchema = new Schema({
     quizzes: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'quiz', 
+            ref: 'quiz',
             default: []
         }
     ]
@@ -43,7 +43,16 @@ const NotesSchema = new Schema({
     {
         // createdAt,updatedAt fields are automatically added into records
         timestamps: true
-    });
+    })
+
+NotesSchema.pre("validate", function (next) {
+    const notes = this
+
+    if (notes.title) {
+        notes.slug = slugify(`${notes.title}`, { replacement: '-', lower: true, strict: true })
+    }
+    next()
+})
 
 //notes: the name of this model
-module.exports = mongoose.model('notes', NotesSchema);
+module.exports = mongoose.model('notes', NotesSchema)

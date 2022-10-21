@@ -42,13 +42,13 @@ router.get('/', async (req, res) => {
     }
 })
 
-// @route GET api/blogPosts/:id
+// @route GET api/blogPosts/:bPSlug
 // @route GET one blog post
 // @route Private: accessed by logged in user
-router.get('/:id', (req, res) => {
+router.get('/:bPSlug', (req, res) => {
 
-    //Find the blogpost by id
-    BlogPost.findById(req.params.id)
+    //Find the blogpost by bPSlug
+    BlogPost.findOne({slug: req.params.bPSlug})
         .populate('postCategory creator')
 
         //return a promise
@@ -108,7 +108,7 @@ router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_ima
             postCategory: savedBlogPost.postCategory,
             creator: savedBlogPost.creator,
             bgColor: savedBlogPost.bgColor,
-            slug: savedBlogPost.slug,
+            slug: savedBlogPost.slug
         })
 
     } catch (err) {

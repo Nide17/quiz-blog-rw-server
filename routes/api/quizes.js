@@ -44,13 +44,13 @@ router.get('/', async (req, res) => {
     }
 })
 
-// @route   GET /api/quizes/:id
+// @route   GET /api/quizes/:quizSlug
 // @desc    Get one quiz
 // @access  Needs to private
-router.get('/:id', async (req, res) => {
+router.get('/:quizSlug', async (req, res) => {
 
     try {
-        const Query = await Quiz.findOne({ _id: req.params.id })
+        const Query = await Quiz.findOne({ slug: req.params.quizSlug })
             .populate('category questions created_by')
 
         if (!Query) throw Error('Quiz not found!')
@@ -153,7 +153,8 @@ router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
             title: savedQuiz.title,
             description: savedQuiz.description,
             category: savedQuiz.category,
-            created_by: savedQuiz.created_by
+            created_by: savedQuiz.created_by,
+            slug: savedQuiz.slug
         })
 
     } catch (err) {
@@ -166,7 +167,7 @@ router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 // @access  Have to private
 router.post('/notifying', authRole(['Creator', 'Admin']), async (req, res) => {
 
-    const { quizId, title, category, created_by } = req.body
+    const { quizId, slug, title, category, created_by } = req.body
 
         // Send email to subscribers of Category on Quiz creation
         const subscribers = await SubscribedUser.find()
@@ -182,14 +183,14 @@ router.post('/notifying', authRole(['Creator', 'Admin']), async (req, res) => {
                     name: sub.name,
                     author: created_by,
                     newQuiz: title,
-                    quizesLink: `${clientURL}/view-quiz/${quizId}`,
+                    quizesLink: `${clientURL}/view-quiz/${slug}`,
                     unsubscribeLink: `${clientURL}/unsubscribe`
                 },
                 "./template/newquiz.handlebars")
         })
 
         res.status(200).json({
-            quizId,
+            slug,
             title,
             category,
             created_by,

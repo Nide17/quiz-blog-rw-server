@@ -1,8 +1,8 @@
 // Bring in Mongo
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 //initialize Mongo schema
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 //create a schema object
 const QuizSchema = new Schema({
@@ -40,21 +40,35 @@ const QuizSchema = new Schema({
     ref: 'user',
     unique: true
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true
+  },
   video_links: {
     type: [
       {
-      vtitle: {
-        type: String,
-        required: true
-      },
-      vlink: {
-        type: String,
-        required: true
+        vtitle: {
+          type: String,
+          required: true
+        },
+        vlink: {
+          type: String,
+          required: true
+        }
       }
-    }
-  ]
-}
-});
+    ]
+  }
+})
+
+QuizSchema.pre("validate", function (next) {
+  const quiz = this
+
+  if (quiz.title) {
+    quiz.slug = slugify(`${quiz.title}`, { replacement: '-', lower: true, strict: true })
+  }
+  next()
+})
 
 //Quiz: the name of this model
-module.exports = mongoose.model('quiz', QuizSchema);
+module.exports = mongoose.model('quiz', QuizSchema)
