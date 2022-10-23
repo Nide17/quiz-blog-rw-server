@@ -170,7 +170,7 @@ router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
             }
         }
 
-        const removedBlogPost = await BlogPost.deleteOne()
+        const removedBlogPost = await blogPost.deleteOne()
 
         if (!removedBlogPost)
             throw Error('Something went wrong while deleting!')

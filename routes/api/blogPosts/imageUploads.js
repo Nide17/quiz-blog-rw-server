@@ -167,7 +167,7 @@ router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
             }
         }
 
-        const removedImageUpload = await ImageUpload.deleteOne()
+        const removedImageUpload = await imageUpload.deleteOne()
 
         if (!removedImageUpload)
             throw Error('Something went wrong while deleting!')
