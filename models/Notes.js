@@ -1,5 +1,6 @@
 // Bring in Mongo
 const mongoose = require('mongoose')
+const slugify = require("slugify")
 
 //initialize Mongo schema
 const Schema = mongoose.Schema
