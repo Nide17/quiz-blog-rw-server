@@ -176,20 +176,74 @@ router.post('/', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'
     }
 })
 
-// @route PUT api/notes/:id
-// @route UPDATE one notes
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
-    try {
-        //Find the notes by id
-        const notes = await Notes.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
-        res.status(200).json(notes)
+// @route  PUT /api/notes/:id
+// @desc   update notes
+// @access Private: Accessed by LOGGED IN
+router.put('/:id', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'), async (req, res) => {
 
-    } catch (err) {
-        res.status(400).json({
-            msg: 'Failed to update! ' + err.message
-        })
+    const { title, description } = req.body
+
+    if (req.file) {
+        //If the file is uploaded
+        const not_file = req.file
+
+        try {
+
+            const note = await Notes.findOne({ _id: req.params.id })
+            if (!note) throw Error('Failed! note not exists!')
+
+            // Delete existing notes
+            const params = {
+                Bucket: process.env.S3_BUCKET_NOTES || config.get('S3NotesBucket'),
+                Key: note.notes_file.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+            }
+
+            try {
+                s3Config.deleteObject(params, (err, data) => {
+                    if (err) {
+                        console.log(err, err.stack) // an error occurred
+                    }
+                    else {
+                        console.log(params.Key + ' notes deleted!')
+                    }
+                })
+
+            }
+            catch (err) {
+                console.log('ERROR in notes deleting : ' + JSON.stringify(err))
+            }
+
+            //Find the notes by id
+            const updatedNotes = await Notes
+                .findByIdAndUpdate({ _id: req.params.id },
+                    {
+                        title,
+                        description,
+                        notes_file: not_file.location
+                    },
+                    { new: true })
+
+            res.status(200).json(updatedNotes)
+
+
+        } catch (err) {
+            res.status(400).json({ msg: err.message })
+        }
+    }
+
+    // If the file is not provided
+    else {
+        try {
+            //Find the notes by id
+            const notes = await Notes.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
+            res.status(200).json(notes)
+
+        } catch (err) {
+            res.status(400).json({
+                msg: 'Failed to update! ' + err.message
+            })
+        }
     }
 })
 
@@ -209,9 +263,9 @@ router.put('/notes-quizzes/:id', auth, async (req, res) => {
     } catch (error) {
         res.status(400).json({
             msg: 'Failed to update! ' + error.message
-        });
+        })
     }
-});
+})
 
 // @route DELETE api/notes/:id
 // @route delete a notes
@@ -279,7 +333,7 @@ router.put('/notes-quizzes/remove/:id', async (req, res) => {
         await Notes.updateOne(
             { _id: note._id },
             { $pull: { quizzes: req.body.quizID } }
-        );
+        )
 
         res.status(200).json({ msg: `Deleted!` })
 
