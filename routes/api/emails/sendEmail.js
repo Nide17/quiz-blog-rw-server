@@ -31,12 +31,12 @@ const sendEmail = async (email, subject, payload, template) => {
         to: email,
         subject: subject,
         html: compiledTemplate(payload),
-        attachments: [
-          {
-            filename: 'quizLogo.jpg',
-            path: __dirname + '/template/quizLogo.jpg'
-          }
-        ]
+        // attachments: [
+        //   {
+        //     filename: 'quizLogo.jpg',
+        //     path: __dirname + '/template/quizLogo.jpg'
+        //   }
+        // ]
       };
     };
 
