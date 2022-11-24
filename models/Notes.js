@@ -29,6 +29,11 @@ const NotesSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'courseCategory'
     },
+    slug: {
+        type: String,
+        required: true,
+        unique: true
+    },
     uploaded_by: {
         type: Schema.Types.ObjectId,
         ref: 'user'
