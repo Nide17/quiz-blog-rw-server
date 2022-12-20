@@ -125,7 +125,7 @@ router.delete('/:id', authRole(['Admin']), async (req, res) => {
         if (!removedComment)
             throw Error('Something went wrong while deleting!')
 
-        res.status(200).json({ msg: `${removedQuizComment.comment} is Deleted!` })
+        res.status(200).json({ msg: `${removedComment.comment} is Deleted!` })
 
     } catch (err) {
         res.status(400).json({

@@ -120,7 +120,7 @@ router.delete('/:id', authRole(['Admin']), async (req, res) => {
         if (!faq) throw Error('Faq is not found!')
 
         // Delete Faq
-        const removedFaq = await Faq.remove()
+        const removedFaq = await faq.remove()
 
         if (!removedFaq)
             throw Error('Something went wrong while deleting!')

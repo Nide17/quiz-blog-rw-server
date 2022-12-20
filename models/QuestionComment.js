@@ -1,0 +1,36 @@
+// Bring in Mongo
+const mongoose = require('mongoose');
+
+//initialize Mongo schema
+const Schema = mongoose.Schema;
+
+//create a schema object
+const QuestionCommentSchema = new Schema({
+    comment: {
+        type: String,
+        required: true
+    },
+    sender: {
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+    },
+    question: {
+        type: Schema.Types.ObjectId,
+        ref: 'question'
+    },
+    quiz: {
+        type: Schema.Types.ObjectId,
+        ref: 'quiz'
+    },
+    isApproved: {
+        type: Boolean,
+        default: false
+    }
+},
+    {
+        // createdAt,updatedAt fields are automatically added into records
+        timestamps: true
+    });
+
+//questionComment: the name of this model
+module.exports = mongoose.model('questionComment', QuestionCommentSchema);

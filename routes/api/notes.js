@@ -328,7 +328,7 @@ router.put('/notes-quizzes/remove/:id', async (req, res) => {
     try {
         const note = await Notes.findOne({ _id: req.params.id })
         if (!note) throw Error('Notes not found!')
-        console.log(req.body)
+
         // Delete quiz in notes
         await Notes.updateOne(
             { _id: note._id },

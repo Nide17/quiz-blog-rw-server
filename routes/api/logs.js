@@ -65,7 +65,7 @@ router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
         const uLog = await ULog.findById(req.params.id)
         if (!uLog) throw Error('uLog is not found!')
         // Delete uLog
-        const removeduLog = await ULog.remove()
+        const removeduLog = await uLog.remove()
         if (!removeduLog)
             throw Error('Something went wrong while deleting!')
         res.status(200).json({ msg: `Deleted!` })
