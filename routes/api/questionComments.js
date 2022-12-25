@@ -67,11 +67,10 @@ router.get('/paginated', authRole(['Admin', 'SuperAdmin']), async (req, res) => 
 })
 
 
-
 // @route GET api/questionComments/pending
 // @route Get qnComments pending
 // @route Private: accessed by super admin
-router.get('/pending', authRole(['SuperAdmin']), async (req, res) => {
+router.get('/pending', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const pendComments = await QuestionComment.find({ status: 'Pending' })

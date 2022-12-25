@@ -81,7 +81,6 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
   }
 })
 
-
 // @route   GET /api/users/:id
 // @desc    Get one User
 // @access  Private: Accessed by SuperAdmin only
