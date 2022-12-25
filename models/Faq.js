@@ -17,6 +17,20 @@ const FaqSchema = new Schema({
     created_by: {
         type: Schema.Types.ObjectId,
         ref: 'user'
+    },
+    video_links: {
+        type: [
+            {
+                vtitle: {
+                    type: String,
+                    required: true
+                },
+                vlink: {
+                    type: String,
+                    required: true
+                }
+            }
+        ]
     }
 },
     {

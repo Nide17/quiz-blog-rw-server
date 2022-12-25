@@ -10,7 +10,6 @@ const Notes = require('../../models/Notes')
 // @route   GET /api/courses
 // @desc    Get courses
 // @access  Public
-
 router.get('/', async (req, res) => {
 
     try {
@@ -29,7 +28,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/courses/:id
 // @desc    Get one course
-// @access Private: accessed by logged in user
+// @access Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id
@@ -48,7 +47,7 @@ router.get('/:id', async (req, res) => {
 
 // @route   GET /api/courses/courseCategory/:id
 // @desc    Get all courses by courseCategory id
-// @access  Needs to private
+// @access  Public
 router.get('/courseCategory/:id', async (req, res) => {
 
     let id = req.params.id
@@ -68,8 +67,8 @@ router.get('/courseCategory/:id', async (req, res) => {
 
 // @route   POST /api/courses
 // @desc    Create a course
-// @access Private: Accessed by admin only
-router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     const { title, description, courseCategory, created_by } = req.body
 
     // Simple validation
@@ -107,8 +106,8 @@ router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/courses/:id
 // @route UPDATE one course
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the course by id
@@ -124,9 +123,9 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/courses/:id
 // @route delete a course
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const course = await Course.findById(req.params.id)

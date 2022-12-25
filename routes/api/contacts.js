@@ -11,8 +11,8 @@ const User = require('../../models/User')
 
 // @route GET api/contacts
 // @route Get All contacts
-// @route Private: accessed by aadmin
-router.get('/', authRole(['Admin']), async (req, res) => {
+// @route Private: accessed by authorization
+router.get('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
   // Pagination
   const totalPages = await Contact.countDocuments({})
@@ -53,7 +53,7 @@ router.get('/', authRole(['Admin']), async (req, res) => {
 
 // @route   GET /api/contacts/sent-by/:userEmail
 // @desc    Get all contacts by user
-// @access  Needs to private
+// @access  Private: accessed by authenticated users
 router.get('/sent-by/:userEmail', auth, async (req, res) => {
 
   let userEmail = req.params.userEmail
@@ -75,7 +75,7 @@ router.get('/sent-by/:userEmail', auth, async (req, res) => {
 
 // @route POST api/contacts
 // @route Create a Contact
-// @route Private: accessed by logged in user
+// @route Public
 router.post("/", async (req, res) => {
 
   try {
@@ -120,8 +120,8 @@ router.post("/", async (req, res) => {
 
 // @route GET api/contacts/:id
 // @route GET one Contact
-// @route Private: accessed by logged in user
-router.get('/:id', authRole(['Admin']), (req, res) => {
+// @route Private: accessed by authorization
+router.get('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
 
   //Find the Contact by id
   Contact.findById(req.params.id)
@@ -134,7 +134,7 @@ router.get('/:id', authRole(['Admin']), (req, res) => {
 
 // @route PUT api/contacts/:id
 // @route Replying a contact
-// @access Private: auth
+// @access Private: accessed by the authenticated user
 router.put('/:id', auth, async (req, res) => {
 
   try {
@@ -169,8 +169,8 @@ router.put('/:id', auth, async (req, res) => {
 
 // @route DELETE api/contacts
 // @route delete a Contact
-// @route Private: Accessed by admin only
-router.delete('/:id', auth, authRole(['Admin']), (req, res) => {
+// @route Private: Accessed by authorization
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
 
   //Find the Contact to delete by id first
   Contact.findById(req.params.id)

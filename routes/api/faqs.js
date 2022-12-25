@@ -9,7 +9,6 @@ const Faq = require('../../models/Faq')
 // @desc    Get faqs
 // @access  Public
 router.get('/', async (req, res) => {
-
     try {
         const faqs = await Faq.find()
             //sort faqs by createdAt
@@ -27,7 +26,7 @@ router.get('/', async (req, res) => {
 
 // @route GET api/faqs/:id
 // @route GET one Faq
-// @route Private: accessed by logged in user
+// @route Public
 router.get('/:id', (req, res) => {
 
     //Find the Faq by id
@@ -41,7 +40,7 @@ router.get('/:id', (req, res) => {
 
 // @route GET api/faqs/:id
 // @route GET one Faq
-// @route Private: accessed by logged in user
+// @route Public
 router.get('/created-by/:id', async (req, res) => {
 
     let id = req.params.id
@@ -60,8 +59,8 @@ router.get('/created-by/:id', async (req, res) => {
 
 // @route POST api/faqs
 // @route Create a Faq
-// @route Private: accessed by admin
-router.post("/", authRole(['Admin']), async (req, res) => {
+// @route Private: accessed by authorized user
+router.post("/", authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     const { title, answer, created_by } = req.body
 
@@ -95,8 +94,8 @@ router.post("/", authRole(['Admin']), async (req, res) => {
 
 // @route PUT api/faqs/:id
 // @route UPDATE one Faq
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by authorized user
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the Faq by id
@@ -110,10 +109,48 @@ router.put('/:id', authRole(['Admin']), async (req, res) => {
     }
 })
 
+// @route PUT api/faqs/add-video/:id
+// @route UPDATE one video
+// @access Private: Accessed by admin authorization
+router.put('/add-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
+
+    try {
+        const faq = await Faq.updateOne(
+            { "_id": req.params.id },
+            { $push: { "video_links": req.body } },
+            { new: true }
+        )
+        res.status(200).json(faq)
+
+    } catch (err) {
+        res.status(400).json({
+            msg: 'Failed to update! ' + err.message
+        })
+    }
+})
+
+// @route DELETE api/faqs/delete-video/:id
+// @route DELETE one video
+// @access Private: Accessed by authorization
+router.put('/delete-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
+
+    try {
+        const quiz = await Faq.updateOne(
+            { "_id": req.body.fID },
+            { $pull: { "video_links": { _id: req.body.vId } } }
+        )
+        res.status(200).json(quiz)
+
+    } catch (err) {
+        res.status(400).json({
+            msg: 'Failed to update! ' + err.message
+        })
+    }
+})
 // @route DELETE api/faqs
 // @route delete a Faq
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
+// @route Private: Accessed by admin authorization
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const faq = await Faq.findById(req.params.id)

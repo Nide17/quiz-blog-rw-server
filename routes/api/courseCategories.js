@@ -11,7 +11,6 @@ const Notes = require('../../models/Notes');
 // @route   GET /api/courseCategories
 // @desc    Get courseCategories
 // @access  Public
-
 router.get('/', async (req, res) => {
 
     try {
@@ -49,9 +48,8 @@ router.get('/:id', auth, async (req, res) => {
 
 // @route   POST /api/courseCategories
 // @desc    Create a course category
-// @access Private: Accessed by admin only
-
-router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     const { title, description, created_by } = req.body;
 
     // Simple validation
@@ -88,10 +86,8 @@ router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/courseCategories/:id
 // @route UPDATE one course category
-// @access Private: Accessed by admin only
-
-router.put('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
-
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     try {
         //Find the course category by id
         const courseCategory = await CourseCategory.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
@@ -106,10 +102,9 @@ router.put('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/courseCategories/:id
 // @route delete a course Category
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-
-router.delete('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const courseCategory = await CourseCategory.findById(req.params.id);

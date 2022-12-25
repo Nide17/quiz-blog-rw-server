@@ -22,9 +22,10 @@ const QuestionCommentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'quiz'
     },
-    isApproved: {
-        type: Boolean,
-        default: false
+    status: { // Pending - Approved - Rejected
+        type: String,
+        required: true,
+        default: "Pending"
     }
 },
     {

@@ -7,12 +7,11 @@ const { auth, authRole } = require('../../middleware/auth')
 
 //Score Model : use capital letters since it's a model
 const Score = require('../../models/Score')
-const Download = require('../../models/Download')
 
 // @route GET api/scores
 // @route Get All scores
-// @route Private: accessed by logged in user
-router.get('/', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: accessed by authorization
+router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   // Pagination
   const totalPages = await Score.countDocuments({})
@@ -56,8 +55,8 @@ router.get('/', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route   GET /api/scores/quiz-creator/:id
 // @desc    Get all scores by taker
-// @access  Needs to private
-router.get('/quiz-creator/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access  Private:
+router.get('/quiz-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   try {
     Score.aggregate([
@@ -125,7 +124,7 @@ router.get('/quiz-creator/:id', auth, authRole(['Creator', 'Admin']), async (req
 
 // @route   GET /api/scores/:id
 // @desc    Get one score
-// @access  Needs to private
+// @access  Private
 router.get('/one-score/:id', auth, async (req, res) => {
 
   let id = req.params.id
@@ -147,7 +146,7 @@ router.get('/one-score/:id', auth, async (req, res) => {
 
 // @route   GET /api/scores/ranking/:id
 // @desc    Get one score
-// @access  Needs to private
+// @access  Public
 router.get('/ranking/:id', async (req, res) => {
 
   let id = req.params.id
@@ -172,7 +171,7 @@ router.get('/ranking/:id', async (req, res) => {
 
 // @route   GET /api/scores/popular-quizes
 // @desc    Get popular quizes
-// @access  Needs to private
+// @access  Public
 router.get('/popular-quizes', async (req, res) => {
 
   var now = new Date();
@@ -223,7 +222,7 @@ router.get('/popular-quizes', async (req, res) => {
 
 // @route   GET /api/scores/popular
 // @desc    Get popular quizes
-// @access  Needs to private
+// @access  Public
 router.get('/monthly-user', async (req, res) => {
 
   var now = new Date();
@@ -294,7 +293,7 @@ router.get('/monthly-user', async (req, res) => {
 
 // @route   GET /api/scores/taken-by/:id
 // @desc    Get all scores by taker
-// @access  Needs to private
+// @access  Private
 router.get('/taken-by/:id', auth, async (req, res) => {
 
   let id = req.params.id
@@ -377,7 +376,7 @@ router.post('/', auth, async (req, res) => {
 // @route DELETE api/scores
 // @route delete a Score
 // @route Private: Accessed by admin only
-router.delete('/:id', auth, authRole(['Admin']), (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
 
   //Find the Score to delete by id first
   Score.findById(req.params.id)

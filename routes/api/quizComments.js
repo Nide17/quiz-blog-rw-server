@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 
 // @route GET api/comments/:id
 // @route GET one comment
-// @route Private: accessed by logged in user
+// @route Public
 router.get('/:id', (req, res) => {
 
     //Find the comment by id
@@ -41,8 +41,8 @@ router.get('/:id', (req, res) => {
 
 // @route GET api/quizComments/comment-on/:id
 // @route GET comments on one quiz
-// @route Private
-router.get('/comments-on/:id', async (req, res) => {
+// @route Private: accessed by authenticated user
+router.get('/comments-on/:id', auth, async (req, res) => {
 
     let id = req.params.id
     try {
@@ -61,7 +61,7 @@ router.get('/comments-on/:id', async (req, res) => {
 
 // @route POST api/comments
 // @route Create a comment
-// @route Private: accessed by admin
+// @route Private: accessed by authenticated user
 router.post("/", auth, async (req, res) => {
 
     const { comment, quiz, sender } = req.body
@@ -95,8 +95,8 @@ router.post("/", auth, async (req, res) => {
 
 // @route PUT api/comments/:id
 // @route UPDATE one comment
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the comment by id
@@ -112,8 +112,8 @@ router.put('/:id', authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/comments
 // @route delete a comment
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
+// @route Private: Accessed by admins only
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const comment = await QuizComment.findById(req.params.id)

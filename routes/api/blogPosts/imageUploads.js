@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
 
 // @route GET api/imageUploads/:id
 // @route GET one image upload
-// @route Private: accessed by logged in user
+// @route Public
 router.get('/:id', (req, res) => {
 
     //Find the imageUpload by id
@@ -51,7 +51,7 @@ router.get('/:id', (req, res) => {
 
 // @route   GET /api/imageUploads/owner/:id
 // @desc    Get imageUploads by owner
-// @access  Needs to private
+// @access  Public
 router.get('/imageOwner/:id', async (req, res) => {
 
     //Find the image uploads by owner
@@ -67,8 +67,8 @@ router.get('/imageOwner/:id', async (req, res) => {
 
 // @route   POST /api/imageUploads
 // @desc    Create image upload
-// @access  Have to be private
-router.post("/", authRole(['Creator', 'Admin']), imgUpload.single("uploadImage"), async (req, res) => {
+// @access  Private
+router.post("/", authRole(['Creator', 'Admin', 'SuperAdmin']), imgUpload.single("uploadImage"), async (req, res) => {
     const { imageTitle, owner } = req.body
 
     // Simple validation
@@ -115,8 +115,8 @@ router.post("/", authRole(['Creator', 'Admin']), imgUpload.single("uploadImage")
 
 // @route PUT /api/imageUploads/:id
 // @route UPDATE one imageUpload
-// @route Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: Accessed by authorized user
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the imageUp by id
@@ -132,8 +132,8 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE /api/imageUploads/:id
 // @route delete a image upload
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: Accessed by authorization user
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const imageUpload = await ImageUpload.findById(req.params.id)

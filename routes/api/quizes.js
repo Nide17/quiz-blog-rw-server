@@ -5,7 +5,6 @@ const router = express.Router()
 const Quiz = require('../../models/Quiz')
 const Question = require('../../models/Question')
 const Category = require('../../models/Category')
-const User = require('../../models/User')
 const SubscribedUser = require('../../models/SubscribedUser')
 
 const { auth, authRole } = require('../../middleware/auth')
@@ -44,9 +43,50 @@ router.get('/', async (req, res) => {
     }
 })
 
+// @route GET api/quizes/paginated
+// @route Get quizes paginated
+// @route Private: accessed by authorized user
+router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
+
+    // Pagination
+    const totalQuizes = await Quiz.countDocuments({})
+    var PAGE_SIZE = 12
+    var pageNo = parseInt(req.query.pageNo || "0")
+    var query = {}
+
+    query.limit = PAGE_SIZE
+    query.skip = PAGE_SIZE * (pageNo - 1)
+
+    try {
+
+        const quizes = pageNo > 0 ?
+            await Quiz.find({}, {}, query)
+                .sort({ creation_date: -1 }).populate('category questions created_by') :
+
+            await Quiz.find()
+                //sort quizes by creation_date
+                .sort({ creation_date: -1 }).populate('category questions created_by')
+
+        if (!quizes) throw Error('No quizes exist')
+
+        if (pageNo > 0) {
+            return res.status(200).json({
+                totalPages: Math.ceil(totalQuizes / PAGE_SIZE),
+                quizes
+            })
+        }
+        else {
+            return res.status(200).json(quizes)
+        }
+
+    } catch (err) {
+        res.status(400).json({ msg: err.message })
+    }
+})
+
 // @route   GET /api/quizes/:quizSlug
 // @desc    Get one quiz
-// @access  Needs to private
+// @access  Public
 router.get('/:quizSlug', async (req, res) => {
 
     try {
@@ -73,7 +113,7 @@ router.get('/:quizSlug', async (req, res) => {
 
 // @route   GET 
 // @desc    Get all quizes by category id
-// @access  Needs to private
+// @access  Public
 router.get('/category/:id', async (req, res) => {
 
     let id = req.params.id
@@ -93,8 +133,8 @@ router.get('/category/:id', async (req, res) => {
 
 // @route   GET /api/quizes/course-notes/:id
 // @desc    Get one quiz
-// @access  Needs to private
-router.get('/course-notes/:id', async (req, res) => {
+// @access  Accessed by authenticated user
+router.get('/course-notes/:id', auth, async (req, res) => {
 
     try {
         // First lookup categories with the course category of the notes
@@ -117,8 +157,8 @@ router.get('/course-notes/:id', async (req, res) => {
 
 // @route   POST /api/quizes
 // @desc    Create quiz
-// @access  Have to private
-router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access  Private:  Accessed by authorization
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     const { title, description, category, created_by } = req.body
 
@@ -164,43 +204,43 @@ router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route   POST /api/quizes/notifying
 // @desc    Send email when quiz is ready
-// @access  Have to private
-router.post('/notifying', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access  Private: authorization
+router.post('/notifying', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     const { quizId, slug, title, category, created_by } = req.body
 
-        // Send email to subscribers of Category on Quiz creation
-        const subscribers = await SubscribedUser.find()
+    // Send email to subscribers of Category on Quiz creation
+    const subscribers = await SubscribedUser.find()
 
-        const clientURL = process.env.NODE_ENV === 'production' ?
-            'https://www.quizblog.rw' : 'http://localhost:3000'
+    const clientURL = process.env.NODE_ENV === 'production' ?
+        'https://www.quizblog.rw' : 'http://localhost:3000'
 
-        subscribers.forEach(sub => {
-            sendEmail(
-                sub.email,
-                `Updates!! new ${category} quiz that may interests you`,
-                {
-                    name: sub.name,
-                    author: created_by,
-                    newQuiz: title,
-                    quizesLink: `${clientURL}/view-quiz/${slug}`,
-                    unsubscribeLink: `${clientURL}/unsubscribe`
-                },
-                "./template/newquiz.handlebars")
-        })
+    subscribers.forEach(sub => {
+        sendEmail(
+            sub.email,
+            `Updates!! new ${category} quiz that may interests you`,
+            {
+                name: sub.name,
+                author: created_by,
+                newQuiz: title,
+                quizesLink: `${clientURL}/view-quiz/${slug}`,
+                unsubscribeLink: `${clientURL}/unsubscribe`
+            },
+            "./template/newquiz.handlebars")
+    })
 
-        res.status(200).json({
-            slug,
-            title,
-            category,
-            created_by,
-        })
+    res.status(200).json({
+        slug,
+        title,
+        category,
+        created_by,
+    })
 })
 
 // @route PUT api/quizes/:id
 // @route Move quiz from one category to another
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the Quiz by id
@@ -228,8 +268,8 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/quizes/add-video/:id
 // @route UPDATE one video
-// @access Private: Accessed by admin only
-router.put('/add-video/:id', authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.put('/add-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const quiz = await Quiz.updateOne(
@@ -248,8 +288,8 @@ router.put('/add-video/:id', authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/quizes/delete-video/:id
 // @route DELETE one video
-// @access Private: Accessed by admin only
-router.put('/delete-video/:id', authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.put('/delete-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const quiz = await Quiz.updateOne(
@@ -267,9 +307,9 @@ router.put('/delete-video/:id', authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/quizes/:id
 // @route delete a Quiz
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const quiz = await Quiz.findById(req.params.id)

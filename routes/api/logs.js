@@ -45,7 +45,7 @@ router.get('/:id', async (req, res) => {
 // @route PUT api/logs/:id
 // @route UPDATE one uLog
 // @access Private: Accessed by admin only
-router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     try {
         //Find the uLog by id
         const uLog = await ULog.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
@@ -60,7 +60,7 @@ router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
 // @route DELETE api/logs/:id
 // @route delete a uLog
 // @route Private: Accessed by admin only
-router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     try {
         const uLog = await ULog.findById(req.params.id)
         if (!uLog) throw Error('uLog is not found!')

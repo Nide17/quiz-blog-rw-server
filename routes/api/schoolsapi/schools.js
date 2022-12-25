@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/schoolsapi/schools/:id
 // @desc    Get one school
-// @access Public: accessed by logged in user
+// @access Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id;
@@ -47,8 +47,8 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST /api/schoolsapi/schools
 // @desc    Create a school school
-// @access  Private: Accessed by admin only
-router.post('/', auth, authRole(['Admin']), async (req, res) => {
+// @access  Private: Accessed by admins
+router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     const { title, location, website } = req.body;
 
     // Simple validation
@@ -84,9 +84,8 @@ router.post('/', auth, authRole(['Admin']), async (req, res) => {
 
 // @route PUT api/schools/:id
 // @route UPDATE one School
-// @access Private: Accessed by admin only
-
-router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the School by id
@@ -102,9 +101,9 @@ router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/schools/:id
 // @route delete a school
-// @route Private: Accessed by admin only
+// @route Private: Accessed by admins only
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const schoolToDelete = await School.findById(req.params.id);

@@ -58,7 +58,11 @@ router.get('/', async (req, res) => {
 
 */
 
-router.get('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+
+// @route   GET api/users
+// @desc    Get all users
+// @access Private: Accessed by ['Creator', 'Admin', 'SuperAdmin']
+router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   try {
     const users = await User.find()
@@ -80,8 +84,8 @@ router.get('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route   GET /api/users/:id
 // @desc    Get one User
-// @access  Private: Accessed by admin only
-router.get('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @access  Private: Accessed by SuperAdmin only
+router.get('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   let id = req.params.id
   try {
@@ -100,8 +104,8 @@ router.get('/:id', auth, authRole(['Admin']), async (req, res) => {
 
 // @route PUT api/users/:id
 // @route UPDATE one User
-// @route Private: Accessed by admin only
-router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @route Private: Accessed by SuperAdmin only
+router.put('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   try {
     //Find the User by id
@@ -117,8 +121,8 @@ router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
 
 
 // @route PUT api/users/user-details/:id
-// @route UPDATE one User
-// @route Private: Accessed by logged in user only
+// @route UPDATE one User details
+// @route Private: Accessed by logged in user
 router.put('/user-details/:id', auth, async (req, res) => {
 
   try {
@@ -135,7 +139,7 @@ router.put('/user-details/:id', auth, async (req, res) => {
 
 // @route  PUT /api/users/user-image/:id
 // @desc   update image
-// @access Private: Accessed by LOGGED IN
+// @access Private: Accessed by LOGGED IN users
 router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async (req, res) => {
 
   if (!req.file) {
@@ -189,9 +193,9 @@ router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async
 
 // @route DELETE api/users/:id
 // @route delete a User
-// @route Private: Accessed by admin only
+// @route Private: Accessed by SuperAdmin only
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   try {
     const user = await User.findById(req.params.id)
@@ -210,7 +214,6 @@ router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
       msg: err.message
     })
   }
-
 })
 
 module.exports = router

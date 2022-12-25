@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/schoolsapi/levels/:id
 // @desc    Get one Level
-// @access Private: accessed by logged in user
+// @access  Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id;
@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 
 // @route   GET /api/schoolsapi/levels/school/:id
 // @desc    Get all levels by school id
-// @access  Needs to private
+// @access  Public
 router.get('/school/:id', async (req, res) => {
 
     let id = req.params.id;
@@ -66,8 +66,8 @@ router.get('/school/:id', async (req, res) => {
 
 // @route   POST /api/schoolsapi/levels
 // @desc    Create a level
-// @access Private: Accessed by admin only
-router.post('/', auth, authRole(['Admin']), async (req, res) => {
+// @access  Private
+router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     const { title, school } = req.body;
 
     // Simple validation
@@ -100,8 +100,8 @@ router.post('/', auth, authRole(['Admin']), async (req, res) => {
 
 // @route PUT api/levels/:id
 // @route UPDATE one Level
-// @access Private: Accessed by admin only
-router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the Level by id
@@ -119,7 +119,7 @@ router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
 // @route delete a level
 // @route Private: Accessed by admin only
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const level = await Level.findById(req.params.id);

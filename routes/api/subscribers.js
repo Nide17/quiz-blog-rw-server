@@ -9,9 +9,8 @@ const SubscribedUser = require('../../models/SubscribedUser');
 
 // @route   GET /api/subscribers
 // @desc    Get subscribers
-// @access  Private: Accessed by admin only
-
-router.get('/', auth, authRole(['Admin']), async (req, res) => {
+// @access  Private: Accessed by admins only
+router.get('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
   try {
     const subscribers = await SubscribedUser.find()
@@ -29,7 +28,6 @@ router.get('/', auth, authRole(['Admin']), async (req, res) => {
 // @route   POST /api/subscribers
 // @desc    Subscribe to our newsletter
 // @access  Public
-
 router.post('/', async (req, res) => {
   const { name, email } = req.body;
 
@@ -78,8 +76,8 @@ router.post('/', async (req, res) => {
 
 // @route GET api/subscribers/:id
 // @route GET one Subscriber
-// @route Private: Accessed by admin only
-router.get('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @route Private: Accessed by admins only
+router.get('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
   try {
     //Find the subscriber by id
     const subscriber = await SubscribedUser.findById(req.params.id);

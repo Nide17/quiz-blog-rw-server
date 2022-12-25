@@ -11,8 +11,8 @@ const SubscribedUser = require('../../models/SubscribedUser')
 
 // @route   GET /api/broadcasts
 // @desc    Get broadcasts
-// @access  Public
-router.get('/', authRole(['Admin']), async (req, res) => {
+// @access  Private: accessed by ['Admin', 'SuperAdmin']
+router.get('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const broadcasts = await Broadcast.find()
@@ -31,8 +31,8 @@ router.get('/', authRole(['Admin']), async (req, res) => {
 
 // @route GET api/broadcasts/:id
 // @route GET one Broadcast
-// @route Private: accessed by logged in user
-router.get('/:id', authRole(['Admin']), (req, res) => {
+// @route Private: accessed by ['Admin', 'SuperAdmin']
+router.get('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
 
     //Find the Broadcast by id
     Broadcast.findById(req.params.id)
@@ -45,8 +45,8 @@ router.get('/:id', authRole(['Admin']), (req, res) => {
 
 // @route POST api/broadcasts
 // @route Create a Broadcast
-// @route Private: accessed by admin
-router.post("/", authRole(['Admin']), async (req, res) => {
+// @route Private: accessed by ['Admin', 'SuperAdmin']
+router.post("/", authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     const { title, sent_by, message } = req.body
 
@@ -122,9 +122,8 @@ router.post("/", authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/broadcasts
 // @route delete a Broadcast
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
-
+// @route Private: Accessed by admin, , 'SuperAdmin' only
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     try {
         const broadcast = await Broadcast.findById(req.params.id)
         if (!broadcast) throw Error('Broadcast is not found!')

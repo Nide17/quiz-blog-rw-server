@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 
 // @route GET api/questions/:id
 // @route GET one Question
-// @route Private
+// @route Public
 
 router.get('/:id', async (req, res) => {
   try {
@@ -60,7 +60,7 @@ router.get('/:id', async (req, res) => {
 // @route POST api/questions
 // @route Create a Question
 // @route Accessed by Admin and Creator
-router.post("/", auth, authRole(['Admin', 'Creator']), questionUpload.single('question_image'), async (req, res) => {
+router.post("/", authRole(['Admin', 'Creator', 'SuperAdmin']), questionUpload.single('question_image'), async (req, res) => {
 
   const { questionText, quiz, category, created_by, answerOptions, duration } = req.body
   const qnImage = req.file
@@ -115,8 +115,8 @@ router.post("/", auth, authRole(['Admin', 'Creator']), questionUpload.single('qu
 
 // @route PUT api/questions/:id
 // @route Move question from one quiz to another
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), questionUpload.single('question_image'), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.single('question_image'), async (req, res) => {
 
   const { questionText, answerOptions, quiz, oldQuizID, last_updated_by, duration } = req.body
   const qnImage = req.file
@@ -200,8 +200,8 @@ router.put('/:id', authRole(['Creator', 'Admin']), questionUpload.single('questi
 
 // @route DELETE api/questions
 // @route delete a Question
-// @route Private: Accessed by admin only
-router.delete('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: Accessed by AUTHORIZATION
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   try {
     //Find the Question to delete by id first

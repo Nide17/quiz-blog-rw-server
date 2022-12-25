@@ -65,8 +65,8 @@ router.get('/level/:id', async (req, res) => {
 
 // @route   POST /api/schoolsapi/faculties
 // @desc    Create a faculty
-// @access Private: Accessed by admin only
-router.post('/', auth, authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     const { title, school, level, years } = req.body
 
     // Simple validation
@@ -104,9 +104,8 @@ router.post('/', auth, authRole(['Admin']), async (req, res) => {
 
 // @route PUT api/faculties/:id
 // @route UPDATE one Faculty
-// @access Private: Accessed by admin only
-
-router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
+// @access Private: Accessed by admins only
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the Faculty by id
@@ -122,9 +121,9 @@ router.put('/:id', auth, authRole(['Admin']), async (req, res) => {
 
 // @route DELETE api/faculties/:id
 // @route delete a Faculty
-// @route Private: Accessed by admin only
+// @route Private: Accessed by admins only
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const faculty = await Faculty.findById(req.params.id)

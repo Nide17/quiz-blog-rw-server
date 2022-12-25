@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/postCategories/:id
 // @desc    Get one category
-// @access Private: accessed by logged in user
+// @access Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id
@@ -46,8 +46,8 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST /api/postCategories
 // @desc    Create a post category
-// @access Private: Accessed by admin only
-router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     const { title, description, creator } = req.body
 
     // Simple validation
@@ -83,9 +83,8 @@ router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/postCategories/:id
 // @route UPDATE one post category
-// @access Private: Accessed by admin only
-
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the post category by id
@@ -101,9 +100,9 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/postCategories/:id
 // @route delete a post Category
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const postCategory = await PostCategory.findById(req.params.id)

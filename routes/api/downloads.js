@@ -8,8 +8,8 @@ const { auth, authRole } = require('../../middleware/auth');
 
 // @route GET api/downloads
 // @route Get paginated downloads
-// @route Private: accessed by logged in user
-router.get('/', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: accessed by authorization
+router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     // Pagination
     const totalPages = await Download.countDocuments({});
@@ -52,8 +52,8 @@ router.get('/', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route   GET /api/downloads/notes-creator/:id
 // @desc    Get all downloads by taker
-// @access  Needs to private
-router.get('/notes-creator/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access  Private: accessed by authorization
+router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         Download.aggregate([
@@ -131,7 +131,7 @@ router.get('/notes-creator/:id', auth, authRole(['Creator', 'Admin']), async (re
 
 // @route   GET /api/downloads/downloaded-by/:id
 // @desc    Get all downloads by taker
-// @access  Needs to private
+// @access  Private: accessed by authenticated user
 router.get('/downloaded-by/:id', auth, async (req, res) => {
 
     let id = req.params.id;
@@ -153,7 +153,7 @@ router.get('/downloaded-by/:id', auth, async (req, res) => {
 
 // @route   POST /api/downloads
 // @desc    Save the download
-// @access  Needs to private
+// @access  Private
 router.post('/', auth, async (req, res) => {
 
     const { notes, chapter, course, courseCategory, downloaded_by } = req.body;
@@ -192,10 +192,9 @@ router.post('/', auth, async (req, res) => {
 
 // @route DELETE api/downloads
 // @route delete a download
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-
-router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const download = await Download.findById(req.params.id);

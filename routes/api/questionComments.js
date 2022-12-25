@@ -25,9 +25,72 @@ router.get('/', async (req, res) => {
     }
 })
 
+// @route GET api/questionComments/paginated
+// @route Get qnComments paginated
+// @route Private: accessed by authorization
+router.get('/paginated', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
+
+    // Pagination
+    const totalQnComments = await QuestionComment.countDocuments({})
+    var PAGE_SIZE = 10
+    var pageNo = parseInt(req.query.pageNo || "0")
+    var query = {}
+
+    query.limit = PAGE_SIZE
+    query.skip = PAGE_SIZE * (pageNo - 1)
+
+    try {
+
+        const qnComments = pageNo > 0 ?
+            await QuestionComment.find({}, {}, query)
+                .sort({ createdAt: -1 }).populate('sender question quiz', '_id questionText title role name email') :
+
+            await QuestionComment.find()
+                //sort qnComments by createdAt
+                .sort({ createdAt: -1 }).populate('sender question quiz', '_id questionText title role name email')
+
+        if (!qnComments) throw Error('No qnComments exist')
+
+        if (pageNo > 0) {
+            return res.status(200).json({
+                totalPages: Math.ceil(totalQnComments / PAGE_SIZE),
+                qnComments
+            })
+        }
+        else {
+            return res.status(200).json(qnComments)
+        }
+
+    } catch (err) {
+        res.status(400).json({ msg: err.message })
+    }
+})
+
+
+
+// @route GET api/questionComments/pending
+// @route Get qnComments pending
+// @route Private: accessed by super admin
+router.get('/pending', authRole(['SuperAdmin']), async (req, res) => {
+
+    try {
+        const pendComments = await QuestionComment.find({ status: 'Pending' })
+            .sort({ createdAt: -1 })
+            .populate('sender question quiz', '_id questionText title role name email')
+
+        if (!pendComments) throw Error('No pending comments found')
+
+        res.status(200).json(pendComments)
+
+    } catch (err) {
+        res.status(400).json({ msg: err.message })
+    }
+})
+
+
 // @route GET api/questionComments/:id
 // @route GET one comment
-// @route Private: accessed by logged in user
+// @route Public
 router.get('/:id', (req, res) => {
 
     //Find the comment by id
@@ -41,7 +104,7 @@ router.get('/:id', (req, res) => {
 // @route GET api/questionComments/comments-on/:id
 // @route GET comments on one question
 // @route Private
-router.get('/comments-on/:id', async (req, res) => {
+router.get('/comments-on/:id', auth, async (req, res) => {
 
     let id = req.params.id
     try {
@@ -77,7 +140,6 @@ router.get('/quiz/:id', async (req, res) => {
         })
     }
 })
-
 
 // @route POST api/questionComments
 // @route Create a comment
@@ -117,9 +179,8 @@ router.post("/", auth, async (req, res) => {
 
 // @route PUT api/questionComments/:id
 // @route UPDATE one comment
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Admin']), async (req, res) => {
-
+// @access Private: Accessed by admins only
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     try {
         //Find the comment by id
         const comment = await QuestionComment.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
@@ -132,10 +193,50 @@ router.put('/:id', authRole(['Admin']), async (req, res) => {
     }
 })
 
+// @route PUT api/questionComments/approve/:id
+// @route approve one comment
+// @access Private: Accessed by super admin only
+router.put('/approve/:id', authRole(['SuperAdmin']), async (req, res) => {
+    try {
+        //Find the comment by id
+        const comment = await QuestionComment.findOneAndUpdate(
+            { _id: req.params.id },
+            { status: 'Approved' },
+            { new: true })
+
+        res.status(200).json(comment)
+
+    } catch (err) {
+        res.status(400).json({
+            msg: 'Failed to update! ' + err.message
+        })
+    }
+})
+
+// @route PUT api/questionComments/reject/:id
+// @route reject one comment
+// @access Private: Accessed by SuperAdmin only
+router.put('/reject/:id', authRole(['SuperAdmin']), async (req, res) => {
+    try {
+        //Find the comment by id
+        const comment = await QuestionComment.findOneAndUpdate(
+            { _id: req.params.id },
+            { status: 'Rejected' },
+            { new: true })
+
+        res.status(200).json(comment)
+
+    } catch (err) {
+        res.status(400).json({
+            msg: 'Failed to update! ' + err.message
+        })
+    }
+})
+
 // @route DELETE api/questionComments
 // @route delete a comment
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
+// @route Private: Accessed by SuperAdmin only
+router.delete('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
     try {
         const comment = await QuestionComment.findById(req.params.id)

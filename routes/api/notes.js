@@ -17,7 +17,7 @@ const { auth, authRole } = require('../../middleware/auth')
 
 // @route   GET /api/notes
 // @desc    Get notes
-// @access  Public
+// @access  Private
 router.get('/', auth, async (req, res) => {
 
     try {
@@ -62,7 +62,7 @@ router.get('/landingDisplay', async (req, res) => {
 
 // @route   GET /api/notes/ccatg/:id
 // @desc    Get all notes by ccatg id
-// @access  Needs to private
+// @access  Public
 router.get('/ccatg/:id', async (req, res) => {
     let id = req.params.id
     try {
@@ -81,7 +81,7 @@ router.get('/ccatg/:id', async (req, res) => {
 
 // @route   GET /api/notes/chapter/:id
 // @desc    Get all notes by chapter id
-// @access  Needs to private
+// @access  Private
 router.get('/chapter/:id', auth, async (req, res) => {
 
     let id = req.params.id
@@ -101,7 +101,7 @@ router.get('/chapter/:id', auth, async (req, res) => {
 
 // @route   GET /api/notes/:id
 // @desc    Get one note
-// @access 
+// @access  Public
 router.get('/:noteSlug', async (req, res) => {
 
     let slg = req.params.noteSlug
@@ -120,8 +120,8 @@ router.get('/:noteSlug', async (req, res) => {
 
 // @route   POST /api/notes
 // @desc    Create a note
-// @access Private: Accessed by admin only
-router.post('/', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'), async (req, res) => {
+// @access Private: Accessed by authorization
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), notesUpload.single('notes_file'), async (req, res) => {
 
     const { title, description, courseCategory, course, chapter, created_by } = req.body
 
@@ -176,11 +176,10 @@ router.post('/', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'
     }
 })
 
-
 // @route  PUT /api/notes/:id
 // @desc   update notes
-// @access Private: Accessed by LOGGED IN
-router.put('/:id', authRole(['Creator', 'Admin']), notesUpload.single('notes_file'), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), notesUpload.single('notes_file'), async (req, res) => {
 
     const { title, description } = req.body
 
@@ -249,9 +248,8 @@ router.put('/:id', authRole(['Creator', 'Admin']), notesUpload.single('notes_fil
 
 // @route PUT api/notes/notes-quizzes/:id
 // @route UPDATE one notes
-// @route Private: Accessed by logged in notes only
+// @route Private: Accessed by logged in users only
 router.put('/notes-quizzes/:id', auth, async (req, res) => {
-
     try {
         const notes = await Notes.updateOne(
             { "_id": req.params.id },
@@ -269,9 +267,9 @@ router.put('/notes-quizzes/:id', auth, async (req, res) => {
 
 // @route DELETE api/notes/:id
 // @route delete a notes
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorization
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const notes = await Notes.findById(req.params.id)
@@ -323,7 +321,7 @@ router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route remove quiz from notes
 // @route Private
-router.put('/notes-quizzes/remove/:id', async (req, res) => {
+router.put('/notes-quizzes/remove/:id', auth, async (req, res) => {
 
     try {
         const note = await Notes.findOne({ _id: req.params.id })

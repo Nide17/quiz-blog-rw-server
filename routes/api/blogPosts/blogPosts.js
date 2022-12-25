@@ -75,8 +75,8 @@ router.get('/postCategory/:id', async (req, res) => {
 
 // @route   POST /api/blogPosts
 // @desc    Create blogPost & upload a post_image
-// @access  Have to be private
-router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_image"), async (req, res) => {
+// @access  Private
+router.post("/", authRole(['Creator', 'Admin', 'SuperAdmin']), blogPostUpload.single("post_image"), async (req, res) => {
 
     const bp_image = req.file ? req.file : null
     const { title, markdown, postCategory, creator, bgColor } = req.body
@@ -118,8 +118,8 @@ router.post("/", authRole(['Creator', 'Admin']), blogPostUpload.single("post_ima
 
 // @route PUT api/blogPosts/:id
 // @route UPDATE one blogPost
-// @route Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: Accessed by AUTHORIZATION
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the blogPost by id
@@ -135,8 +135,8 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/blogPosts/:id
 // @route delete a blogPost
-// @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @route Private: Accessed by authorization
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const blogPost = await BlogPost.findById(req.params.id)

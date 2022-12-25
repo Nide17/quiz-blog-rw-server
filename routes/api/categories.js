@@ -6,12 +6,11 @@ const Category = require('../../models/Category')
 const Quiz = require('../../models/Quiz')
 const Question = require('../../models/Question')
 
-const { auth, authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/auth')
 
 // @route   GET /api/categories
 // @desc    Get categories
 // @access  Public
-
 router.get('/', async (req, res) => {
 
     try {
@@ -32,7 +31,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/categories/:id
 // @desc    Get one category
-// @access Private: accessed by logged in user
+// @access Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id
@@ -54,9 +53,8 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST /api/categories
 // @desc    Create a category
-// @access Private: Accessed by admin only
-
-router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorized user
+router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     const { title, description, quizes, created_by, creation_date, courseCategory } = req.body
 
     // Simple validation
@@ -97,8 +95,8 @@ router.post('/', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/categories/:id
 // @route UPDATE one Category
-// @access Private: Accessed by admin only
-router.put('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorized user
+router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the Category by id
@@ -114,9 +112,9 @@ router.put('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/categories/:id
 // @route delete a Category
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorized user
 //:id placeholder, findById = we get it from the parameter in url
-router.delete('/:id', auth, authRole(['Creator', 'Admin']), async (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         const category = await Category.findById(req.params.id)

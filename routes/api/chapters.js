@@ -9,7 +9,6 @@ const Notes = require('../../models/Notes')
 // @route   GET /api/chapters
 // @desc    Get chapters
 // @access  Public
-
 router.get('/', async (req, res) => {
 
     try {
@@ -28,7 +27,7 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/chapters/:id
 // @desc    Get one chapter
-// @access Private: accessed by logged in user
+// @access Public
 router.get('/:id', async (req, res) => {
 
     let id = req.params.id
@@ -69,7 +68,7 @@ router.get('/course/:id', async (req, res) => {
 // @route   POST /api/chapters
 // @desc    Create a chapter
 // @access Private: Accessed by admin only
-router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
+router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     const { title, description, courseCategory, course, created_by } = req.body
 
     // Simple validation
@@ -109,8 +108,8 @@ router.post('/', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route PUT api/chapters/:id
 // @route UPDATE one chapter
-// @access Private: Accessed by admin only
-router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
+// @access Private: Accessed by authorization
+router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
         //Find the chapter by id
@@ -126,11 +125,9 @@ router.put('/:id', authRole(['Creator', 'Admin']), async (req, res) => {
 
 // @route DELETE api/chapters/:id
 // @route delete a chapter
-// @route Private: Accessed by admin only
+// @route Private: Accessed by authorized user
 //:id placeholder, findById = we get it from the parameter in url
-
-router.delete('/:id', authRole(['Admin']), async (req, res) => {
-
+router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
     try {
         const chapter = await Chapter.findById(req.params.id)
         if (!chapter) throw Error('Chapter is not found!')
