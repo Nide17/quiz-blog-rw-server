@@ -70,6 +70,7 @@ app.use('/api/questionComments', require('./routes/api/questionComments'))
 app.use('/api/challengeQuestions', require('./routes/api/challenges/challengeQuestions'))
 app.use('/api/challengeQuizzes', require('./routes/api/challenges/challengeQuizzes'))
 app.use('/api/challengeScores', require('./routes/api/challenges/challengeScores'))
+app.use('/api/statistics', require('./routes/api/statistics'))
 
 // BlogPosts
 app.use('/api/blogPosts', require('./routes/api/blogPosts/blogPosts'))

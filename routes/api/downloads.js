@@ -83,7 +83,7 @@ router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), a
             },
             { $unwind: '$courses_downloads' },
             {
-                // Join with courses collection
+                // Join with chapters collection
                 $lookup:
                 {
                     from: "chapters",
