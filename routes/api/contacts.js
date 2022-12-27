@@ -12,7 +12,7 @@ const User = require('../../models/User')
 // @route GET api/contacts
 // @route Get All contacts
 // @route Private: accessed by authorization
-router.get('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
+router.get('/', auth, async (req, res) => {
 
   // Pagination
   const totalPages = await Contact.countDocuments({})
