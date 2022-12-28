@@ -121,7 +121,7 @@ router.post("/", async (req, res) => {
 // @route GET api/contacts/:id
 // @route GET one Contact
 // @route Private: accessed by authorization
-router.get('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
+router.get('/:id', auth, (req, res) => {
 
   //Find the Contact by id
   Contact.findById(req.params.id)
