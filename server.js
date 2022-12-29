@@ -117,11 +117,11 @@ io.on('connection', (socket) => {
     console.log(`User connected ${socket.id}`);
 
     // Receiving message from the client
-    socket.on('frontJoinedUser', ({ user_id, email, username }) => {
+    socket.on('frontJoinedUser', ({ user_id, email, username, role }) => {
 
-        onlineUsers.push({ socketID: socket.id, user_id, email, username });
+        onlineUsers.push({ socketID: socket.id, user_id, email, username, role });
         console.log("Joined user:")
-        console.log(JSON.stringify({ user_id, email, username }));
+        console.log(JSON.stringify({ user_id, email, username, role }));
         console.log('Online users:' + onlineUsers.length);
         console.log(JSON.stringify(onlineUsers))
 

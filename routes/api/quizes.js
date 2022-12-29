@@ -49,7 +49,12 @@ router.get('/', async (req, res) => {
 router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     // Pagination
-    const totalQuizes = await Quiz.countDocuments({})
+    const allQCount = await Quiz.countDocuments({})
+    // count the number of quizes matching the user_Id
+    const creatorQz = await Quiz.countDocuments({ created_by: req.user._id })
+    // if the user is a creator, return the number of quizes created by the user
+    const countToReturn = req.user.role === 'Creator' ? creatorQz : allQCount
+
     var PAGE_SIZE = 12
     var pageNo = parseInt(req.query.pageNo || "0")
     var query = {}
@@ -59,19 +64,41 @@ router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (re
 
     try {
 
-        const quizes = pageNo > 0 ?
-            await Quiz.find({}, {}, query)
-                .sort({ creation_date: -1 }).populate('category questions created_by') :
+        var quizes = 0
 
-            await Quiz.find()
-                //sort quizes by creation_date
-                .sort({ creation_date: -1 }).populate('category questions created_by')
+        // if page number is specified, return the quizes for that page
+        if (pageNo > 0) {
+            // if the user is a creator, return the quizes created by the user
+            quizes = req.user.role === 'Creator' ?
+
+                await Quiz.find({ created_by: req.user._id }, {}, query).sort({ creation_date: -1 }).populate('category questions created_by') :
+
+                // else return all quizes
+                await Quiz.find({}, {}, query)
+                    .sort({ creation_date: -1 }).populate('category questions created_by')
+        }
+
+        // if page number is not specified, return all quizes
+        else {
+            quizes = req.user.role === 'Creator' ?
+
+                // if the user is a creator, return the quizes created by the user
+                await Quiz.find({ created_by: req.user._id }).sort({ creation_date: -1 }).populate('category questions created_by') :
+
+                // else return all quizes
+                await Quiz.find()
+                    .sort({ creation_date: -1 }).populate('category questions created_by')
+        }
+
 
         if (!quizes) throw Error('No quizes exist')
+        console.log(req.user._id)
+        console.log(req.user.role)
+        console.log(creatorQz)
 
         if (pageNo > 0) {
             return res.status(200).json({
-                totalPages: Math.ceil(totalQuizes / PAGE_SIZE),
+                totalPages: Math.ceil(countToReturn / PAGE_SIZE),
                 quizes
             })
         }
@@ -83,6 +110,10 @@ router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (re
         res.status(400).json({ msg: err.message })
     }
 })
+
+// @route GET api/quizes/creator
+// @route Get quizes paginated
+// @route Private: accessed by authorized user
 
 // @route   GET /api/quizes/:quizSlug
 // @desc    Get one quiz

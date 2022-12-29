@@ -841,6 +841,53 @@ router.get('/notesCategoriesDownloads', async (req, res) => {
     })
 })
 
+// @route   GET api/statistics
+// @desc    Get the count of users registered for each day using register_date
+// @access Private: Accessed by ['Admin', 'SuperAdmin']
+router.get('/dailyUserRegistration', async (req, res) => {
+    User.aggregate([
+        {
+            // make register_date only date without hours, minutes, seconds
+            $project: {
+                register_date: {
+                    $dateToString: {
+                        format: "%Y-%m-%d",
+                        date: "$register_date"
+                    }
+                }
+            }
+        },
+        {
+            // Group by register_date and count users
+            $group: {
+                _id: "$register_date",
+                users: { $sum: 1 }
+            }
+        },
+        {
+            // Sort by register_date in ascending order
+            $sort: { _id: 1 }
+        },
+        {
+            // Decide what to return
+            $project: {
+                _id: 0,
+                date: "$_id",
+                users: 1
+            }
+        }
+    ]).exec(function (err, usersStats) {
+        if (err) return err
+        // make a total of users
+        let total = 0
+        usersStats.forEach(user => {
+            total += user.users
+        })
+        res.json({ usersStats, total })
+    })
+})
+
+
 
 
 

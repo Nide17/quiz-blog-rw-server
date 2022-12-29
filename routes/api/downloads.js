@@ -154,13 +154,13 @@ router.get('/downloaded-by/:id', auth, async (req, res) => {
 // @route   POST /api/downloads
 // @desc    Save the download
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', async (req, res) => {
 
     const { notes, chapter, course, courseCategory, downloaded_by } = req.body;
 
     // Simple validation
-    if (!notes || !downloaded_by) {
-        return res.status(400).json({ msg: 'Please fill required fields' });
+    if (!notes) {
+        return res.status(400).json({ msg: 'no notes' });
     }
 
     try {
