@@ -322,54 +322,63 @@ router.post('/', auth, async (req, res) => {
   var now = new Date()
 
   // Simple validation
-  if (!id || !category || !quiz || !review || !taken_by) {
+  if (!id || !marks || !out_of || !category || !quiz || !review || !taken_by) {
     return res.status(400).json({ msg: req.body })
   }
 
-  try {
-    const scoreExist = await Score.findOne({ taken_by }, {}, { sort: { 'test_date': -1 } })
+  else {
 
-    if (scoreExist) {
-      let testDate = new Date(scoreExist.test_date)
-      let seconds = Math.round((now.getTime() - testDate.getTime()) / 1000)
+    try {
+      const existingScore = await Score.find({ id: id })
+      const recentScoreExist = await Score.find({ taken_by }, {}, { sort: { 'test_date': -1 } })
 
-      if (seconds < 10) {
+      if (existingScore.length > 0) {
         return res.status(400).json({
-          msg: 'Score saved already!'
+          msg: 'Failed! score with same id already exists!'
         })
       }
 
+      else if (recentScoreExist) {
+        let testDate = new Date(recentScoreExist.test_date)
+        let seconds = Math.round((now.getTime() - testDate.getTime()) / 1000)
+
+        if (seconds < 10) {
+          return res.status(400).json({
+            msg: 'Score with same time saved already!'
+          })
+        }
+      }
+
+      const newScore = new Score({
+        id,
+        marks,
+        out_of,
+        test_date: now,
+        category,
+        quiz,
+        review,
+        taken_by
+      })
+
+      const savedScore = await newScore.save()
+
+      if (!savedScore) throw Error('Something went wrong during creation!')
+
+      res.status(200).json({
+        _id: savedScore._id,
+        id: savedScore.id,
+        marks: savedScore.marks,
+        out_of: savedScore.out_of,
+        test_date: savedScore.test_date,
+        category: savedScore.category,
+        quiz: savedScore.quiz,
+        review: savedScore.review,
+        taken_by: savedScore.taken_by
+      })
+
+    } catch (err) {
+      res.status(400).json({ msg: err.message })
     }
-
-    const newScore = new Score({
-      id,
-      marks,
-      out_of,
-      test_date: now,
-      category,
-      quiz,
-      review,
-      taken_by
-    })
-
-    const savedScore = await newScore.save()
-
-    if (!savedScore) throw Error('Something went wrong during creation!')
-
-    res.status(200).json({
-      _id: savedScore._id,
-      id: savedScore.id,
-      marks: savedScore.marks,
-      out_of: savedScore.out_of,
-      test_date: savedScore.test_date,
-      category: savedScore.category,
-      quiz: savedScore.quiz,
-      review: savedScore.review,
-      taken_by: savedScore.taken_by
-    })
-
-  } catch (err) {
-    res.status(400).json({ msg: err.message })
   }
 })
 
