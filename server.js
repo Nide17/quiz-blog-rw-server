@@ -71,6 +71,7 @@ app.use('/api/challengeQuestions', require('./routes/api/challenges/challengeQue
 app.use('/api/challengeQuizzes', require('./routes/api/challenges/challengeQuizzes'))
 app.use('/api/challengeScores', require('./routes/api/challenges/challengeScores'))
 app.use('/api/statistics', require('./routes/api/statistics'))
+app.use('/api/adverts', require('./routes/api/adverts'))
 
 // BlogPosts
 app.use('/api/blogPosts', require('./routes/api/blogPosts/blogPosts'))
