@@ -182,7 +182,7 @@ router.post('/forgot-password', async (req, res) => {
     }).save()
 
     const clientURL = process.env.NODE_ENV === 'production' ?
-      'https://www.quizblog.rw' : 'http://localhost:3000'
+      'https://quizblog.rw' : 'http://localhost:3000'
 
     const link = `${clientURL}/reset-password?token=${resetToken}&id=${userToReset._id}`
 

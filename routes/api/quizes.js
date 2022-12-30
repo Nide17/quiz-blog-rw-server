@@ -244,7 +244,7 @@ router.post('/notifying', authRole(['Creator', 'Admin', 'SuperAdmin']), async (r
     const subscribers = await SubscribedUser.find()
 
     const clientURL = process.env.NODE_ENV === 'production' ?
-        'https://www.quizblog.rw' : 'http://localhost:3000'
+        'https://quizblog.rw' : 'http://localhost:3000'
 
     subscribers.forEach(sub => {
         sendEmail(
