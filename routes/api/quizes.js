@@ -92,9 +92,6 @@ router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (re
 
 
         if (!quizes) throw Error('No quizes exist')
-        console.log(req.user._id)
-        console.log(req.user.role)
-        console.log(creatorQz)
 
         if (pageNo > 0) {
             return res.status(200).json({

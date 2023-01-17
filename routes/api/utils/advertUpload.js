@@ -1,5 +1,6 @@
 const config = require('config')
 const AWS = require('aws-sdk')
+const path = require('path')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 
@@ -23,11 +24,11 @@ const fileFilter = (req, file, callback) => {
 // Uploading image locally if multer is working.
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, './adverts')
+        callback(null, path.join(__dirname, 'adverts'));
     },
     filename: (req, file, callback) => {
-        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, req.params.id + '-' + fileName)
+        const fileName = file.originalname.toUpperCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
+        callback(null, fileName.replace(/\./g, '-[QuizBlog].'))
     }
 })
 
@@ -45,7 +46,8 @@ const multerS3Config = multerS3({
 })
 
 const upload = multer({
-    storage: multerS3Config,
+    storage: storage,
+    // storage: multerS3Config,
     fileFilter: fileFilter,
     limits: {
         fileSize: 2000000 // 1000000 Bytes = 1 MB (2MB)

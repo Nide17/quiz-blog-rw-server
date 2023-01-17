@@ -1,7 +1,7 @@
-const nodemailer = require("nodemailer");
-const handlebars = require("handlebars");
-const fs = require("fs");
-const path = require("path");
+const nodemailer = require("nodemailer")
+const handlebars = require("handlebars")
+const fs = require("fs")
+const path = require("path")
 
 const sendEmail = async (email, subject, payload, template) => {
   try {
@@ -19,10 +19,10 @@ const sendEmail = async (email, subject, payload, template) => {
       },
       maxConnections: 20,
       maxMessages: Infinity
-    });
+    })
 
-    const source = fs.readFileSync(path.join(__dirname, template), "utf8");
-    const compiledTemplate = handlebars.compile(source);
+    const source = fs.readFileSync(path.join(__dirname, template), "utf8")
+    const compiledTemplate = handlebars.compile(source)
 
     // Mail options
     const options = () => {
@@ -37,25 +37,25 @@ const sendEmail = async (email, subject, payload, template) => {
         //     path: __dirname + '/template/quizLogo.jpg'
         //   }
         // ]
-      };
-    };
+      }
+    }
 
     // Send email
     transporter.sendMail(options(), (err, info) => {
 
       if (err) {
-        console.log(err);
-        return err;
+        console.log(err)
+        return err
 
       } else {
         console.log('Email sent to ' + info.envelope.to[0])
-        return info;
+        return info
       }
-    });
+    })
 
   } catch (err) {
-    return console.log({ msg: err.message });
+    return console.log({ msg: err.message })
   }
-};
+}
 
-module.exports = sendEmail;
+module.exports = sendEmail

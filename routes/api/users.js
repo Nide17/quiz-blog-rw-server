@@ -151,34 +151,39 @@ router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async
     const img_file = req.file
 
     try {
-
       const profile = await User.findOne({ _id: req.params.id })
       if (!profile) throw Error('Failed! profile not exists!')
 
       // Delete existing image
-      const params = {
-        Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket'),
-        Key: profile.image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
-      }
+      if (profile && profile.image) {
 
-      try {
-        s3Config.deleteObject(params, (err, data) => {
-          if (err) {
-            console.log(err, err.stack) // an error occurred
-          }
-          else {
-            console.log(params.Key + ' deleted!')
-          }
-        })
+        const params = {
+          Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket'),
+          Key: profile.image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+        }
 
-      }
-      catch (err) {
-        console.log('ERROR in file Deleting : ' + JSON.stringify(err))
+        try {
+          s3Config.deleteObject(params, (err, data) => {
+            if (err) {
+              console.log(err, err.stack) // an error occurred
+            }
+            else {
+              console.log(params.Key + ' deleted!')
+            }
+          })
+        }
+        catch (err) {
+          console.log('ERROR in file Deleting : ' + JSON.stringify(err))
+        }
       }
 
       //Find the user by id
       const updatedUserProfile = await User
         .findByIdAndUpdate({ _id: req.params.id }, { image: img_file.location }, { new: true })
+
+        // FOR LOCAL UPLOAD
+      // const updatedUserProfile = await User
+      //   .findByIdAndUpdate({ _id: req.params.id }, { image: img_file.location ? img_file.location : img_file.path }, { new: true })
 
       res.status(200).json(updatedUserProfile)
 
@@ -188,7 +193,6 @@ router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async
     }
   }
 })
-
 
 // @route DELETE api/users/:id
 // @route delete a User

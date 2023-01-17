@@ -1,4 +1,4 @@
-const express = require("express")
+const express = require('express')
 const config = require('config')
 const router = express.Router()
 const AWS = require('aws-sdk')
@@ -22,6 +22,24 @@ router.get('/', async (req, res) => {
         res.status(400).json({ msg: err.message })
     }
 })
+
+// @route   GET /api/adverts/active
+// @desc    Get active adverts
+// @access  Public
+router.get('/active', async (req, res) => {
+    try {
+        const activeAdverts = await Advert
+            .find({ status: "Active" })
+            .sort({ createdAt: -1 })
+
+        if (!activeAdverts) throw Error('No active adverts found')
+        res.status(200).json(activeAdverts)
+
+    } catch (err) {
+        res.status(400).json({ msg: err.message })
+    }
+})
+
 
 // @route GET api/adverts/:id
 // @route GET one Advert
@@ -58,7 +76,7 @@ router.get('/created-by/:id', async (req, res) => {
 // @route POST api/adverts
 // @route Create an advert
 // @route Private: accessed by authorized user
-router.post("/", authRole(['Admin', 'SuperAdmin']), advertUpload.single("advert_image"), async (req, res) => {
+router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_image'), async (req, res) => {
 
     const { caption, phone, owner, email } = req.body
 
@@ -66,7 +84,6 @@ router.post("/", authRole(['Admin', 'SuperAdmin']), advertUpload.single("advert_
     if (!caption || !owner || !email || !phone) {
         return res.status(400).json({ msg: 'Please fill required fields' })
     }
-
 
     if (!req.file) {
         //If the file is not uploaded, then throw custom error with message: FILE_MISSING
@@ -84,7 +101,9 @@ router.post("/", authRole(['Admin', 'SuperAdmin']), advertUpload.single("advert_
                 phone,
                 owner,
                 email,
-                advert_image: ad_file.location
+                // advert_image: ad_file.location
+                // IF WORKING LOCALLY
+                advert_image: ad_file.location ? ad_file.location : ad_file.path
             })
 
             const savedAdvert = await newAdvert.save()
@@ -101,6 +120,7 @@ router.post("/", authRole(['Admin', 'SuperAdmin']), advertUpload.single("advert_
             })
 
         } catch (err) {
+            console.error(err.message);
             res.status(400).json({ msg: err.message })
         }
     }
@@ -124,6 +144,26 @@ router.put('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     }
 })
 
+// @route PUT api/adverts/status/:id
+// @route UPDATE by activating and deactivating advert
+// @access Private: Accessed by authorized user
+router.put('/status/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
+
+    try {
+        //Find the advert by id
+        const advert = await Advert.findByIdAndUpdate({ _id: req.params.id },
+            { $set: { status: req.body.status } },
+            { new: true })
+        res.status(200).json(advert)
+
+    } catch (err) {
+        res.status(400).json({
+            msg: 'Failed to update! ' + err.message
+        })
+
+    }
+})
+
 // @route PUT api/adverts/add-video/:id
 // @route UPDATE one video
 // @access Private: Accessed by admin authorization
@@ -131,8 +171,8 @@ router.put('/add-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, res)
 
     try {
         const advert = await Advert.updateOne(
-            { "_id": req.params.id },
-            { $push: { "video_links": req.body } },
+            { '_id': req.params.id },
+            { $push: { 'video_links': req.body } },
             { new: true }
         )
         res.status(200).json(advert)
@@ -151,8 +191,8 @@ router.put('/delete-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, r
 
     try {
         const quiz = await Advert.updateOne(
-            { "_id": req.body.fID },
-            { $pull: { "video_links": { _id: req.body.vId } } }
+            { '_id': req.body.fID },
+            { $pull: { 'video_links': { _id: req.body.vId } } }
         )
         res.status(200).json(quiz)
 

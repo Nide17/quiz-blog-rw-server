@@ -8,7 +8,8 @@ const Schema = mongoose.Schema;
 const AdvertSchema = new Schema({
     caption: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     owner: {
         type: String,
@@ -20,12 +21,16 @@ const AdvertSchema = new Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     advert_image: {
         type: String,
         required: true
+    },
+    status: { // Active, Inactive
+        type: String,
+        required: true,
+        default: "Inactive"
     }
 },
     {

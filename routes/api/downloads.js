@@ -1,10 +1,10 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const router = express.Router();
+const express = require('express')
+const mongoose = require('mongoose')
+const router = express.Router()
 
 // Download Model
-const Download = require('../../models/Download');
-const { auth, authRole } = require('../../middleware/auth');
+const Download = require('../../models/Download')
+const { auth, authRole } = require('../../middleware/auth')
 
 // @route GET api/downloads
 // @route Get paginated downloads
@@ -12,7 +12,7 @@ const { auth, authRole } = require('../../middleware/auth');
 router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     // Pagination
-    const totalPages = await Download.countDocuments({});
+    const totalPages = await Download.countDocuments({})
     var PAGE_SIZE = 20
     var pageNo = parseInt(req.query.pageNo || "0")
     var query = {}
@@ -32,7 +32,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
                 .sort({ createdAt: -1 })
                 .populate('notes course chapter downloaded_by')
 
-        if (!downloads) throw Error('No downloads exist');
+        if (!downloads) throw Error('No downloads exist')
 
         if (pageNo > 0) {
 
@@ -48,7 +48,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     } catch (err) {
         res.status(400).json({ msg: err.message })
     }
-});
+})
 
 // @route   GET /api/downloads/notes-creator/:id
 // @desc    Get all downloads by taker
@@ -116,15 +116,15 @@ router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), a
                 }
             }
         ]).exec(function (err, downloads) {
-            if (err) return err;
-            res.json(downloads);
+            if (err) return err
+            res.json(downloads)
         }
-        );
+        )
 
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message
-        });
+        })
     }
 
 })
@@ -134,11 +134,11 @@ router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), a
 // @access  Private: accessed by authenticated user
 router.get('/downloaded-by/:id', auth, async (req, res) => {
 
-    let id = req.params.id;
+    let id = req.params.id
     try {
         //Find the downloads by id
         await Download.find({ downloaded_by: id }, (err, downloads) => {
-            res.status(200).json(downloads);
+            res.status(200).json(downloads)
         })
             // Use the name of the schema path instead of the collection name
             .populate('notes course chapter downloaded_by')
@@ -146,49 +146,73 @@ router.get('/downloaded-by/:id', auth, async (req, res) => {
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message
-        });
+        })
     }
 
-});
+})
 
 // @route   POST /api/downloads
 // @desc    Save the download
 // @access  Private
 router.post('/', async (req, res) => {
 
-    const { notes, chapter, course, courseCategory, downloaded_by } = req.body;
+    const { notes, chapter, course, courseCategory, downloaded_by } = req.body
+    var now = new Date()
 
     // Simple validation
-    if (!notes) {
-        return res.status(400).json({ msg: 'no notes' });
+    if (!notes || !course || !courseCategory || !downloaded_by) {
+        return res.status(400).json({ msg: req.body })
     }
 
-    try {
-        const newDownload = new Download({
-            notes,
-            chapter,
-            course,
-            courseCategory,
-            downloaded_by
-        });
+    else {
 
-        const savedDownload = await newDownload.save();
-        if (!savedDownload) throw Error('Something went wrong during creation!');
+        try {
+            // const existingDownload = await Download.find({ notes: notes })
+            const recentDownExist = await Download.find({ downloaded_by }, {}, { sort: { 'createdAt': -1 } })
 
-        res.status(200).json({
-            _id: savedDownload._id,
-            notes: savedDownload.notes,
-            chapter: savedDownload.chapter,
-            course: savedDownload.course,
-            courseCategory: savedDownload.course,
-            downloaded_by: savedDownload.downloaded_by,
-            createdAt: savedDownload.createdAt,
-        });
+            // if (existingDownload.length > 0) {
+            //     return res.status(400).json({
+            //         msg: 'Failed! same download already exists!'
+            //     })
+            // }
 
-    } catch (err) {
-        res.status(400).json({ msg: err.message });
+            if (recentDownExist) {
+                let downDate = new Date(recentDownExist.createdAt)
+                let seconds = Math.round((now.getTime() - downDate.getTime()) / 1000)
+
+                if (seconds < 5) {
+                    return res.status(400).json({
+                        msg: 'Download with same time saved already!'
+                    })
+                }
+            }
+
+            const newDownload = new Download({
+                notes,
+                chapter,
+                course,
+                courseCategory,
+                downloaded_by
+            })
+
+            const savedDownload = await newDownload.save()
+            if (!savedDownload) throw Error('Something went wrong during creation!')
+
+            res.status(200).json({
+                _id: savedDownload._id,
+                notes: savedDownload.notes,
+                chapter: savedDownload.chapter,
+                course: savedDownload.course,
+                courseCategory: savedDownload.course,
+                downloaded_by: savedDownload.downloaded_by,
+                createdAt: savedDownload.createdAt,
+            })
+
+        } catch (err) {
+            res.status(400).json({ msg: err.message })
+        }
     }
-});
+})
 
 // @route DELETE api/downloads
 // @route delete a download
@@ -197,21 +221,21 @@ router.post('/', async (req, res) => {
 router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
-        const download = await Download.findById(req.params.id);
+        const download = await Download.findById(req.params.id)
         if (!download) throw Error('Download is not found!')
 
         // Delete Download
-        const removedDownload = await download.remove();
+        const removedDownload = await download.remove()
 
         if (!removedDownload)
-            throw Error('Something went wrong while deleting!');
+            throw Error('Something went wrong while deleting!')
         res.status(200).json({ msg: `Deleted!` })
 
     } catch (err) {
         res.status(400).json({
             msg: err.message
-        });
+        })
     }
-});
+})
 
-module.exports = router;
+module.exports = router

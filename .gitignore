@@ -44,3 +44,6 @@ yarn-error.log*
 .yarnrc
 .yarn
 client/.eslintcache
+
+/routes/api/utils/adverts
+/routes/api/utils/profiles
