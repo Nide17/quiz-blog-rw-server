@@ -105,8 +105,9 @@ const server = http.createServer(app);
 // Create an io server and allow for CORS from http://localhost:3000 with GET and POST methods
 const io = new Server(server, {
     cors: {
-        origin: process.env.NODE_ENV === 'production' ? 'https://quizblog.rw' : 'http://localhost:3000',
-        methods: ['GET', 'POST'],
+        // both http://localhost:3000 and quizblog.rw are allowed
+        origin: ['http://localhost:3000', 'http://localhost:4000', 'https://quizblog.rw', 'https://www.quizblog.rw', 'http://quizblog.rw', 'http://www.quizblog.rw'],
+        methods: ['GET', 'POST']
     },
 });
 
