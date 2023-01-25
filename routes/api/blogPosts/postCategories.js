@@ -108,9 +108,6 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
         const postCategory = await PostCategory.findById(req.params.id)
         if (!postCategory) throw Error('post category is not found!')
 
-        // Delete posts belonging to this category
-        await post.deleteMany({ category: postCategory._id })
-
         // Delete BlogPosts belonging to this category
         await BlogPost.deleteMany({ postCategory: postCategory._id })
 
