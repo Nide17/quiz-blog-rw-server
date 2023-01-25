@@ -46,8 +46,8 @@ const multerS3Config = multerS3({
 })
 
 const upload = multer({
-    storage: storage,
-    // storage: multerS3Config,
+    // storage: storage,
+    storage: multerS3Config,
     fileFilter: fileFilter,
     limits: {
         fileSize: 2000000 // 1000000 Bytes = 1 MB (2MB)
