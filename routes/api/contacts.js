@@ -77,7 +77,6 @@ router.get('/sent-by/:userEmail', auth, async (req, res) => {
 // @route Create a Contact
 // @route Public
 router.post("/", async (req, res) => {
-
   try {
 
     const newContact = await Contact.create(req.body)
@@ -93,8 +92,8 @@ router.post("/", async (req, res) => {
       },
       "./template/contact.handlebars")
 
-    // Sending e-mail to admins
-    const admins = await User.find({ role: 'Admin' }).select("email")
+    // Sending e-mail to super admins and admins
+    const admins = await User.find({ role: { $in: ["Admin", "Super Admin"] } }).select("email")
 
     admins.forEach(ad => {
       sendEmail(
