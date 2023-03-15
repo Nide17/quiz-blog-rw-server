@@ -5,7 +5,6 @@ const path = require("path")
 
 const sendEmail = async (email, subject, payload, template) => {
   try {
-
     // create reusable transporter object using the default SMTP transport
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -58,4 +57,52 @@ const sendEmail = async (email, subject, payload, template) => {
   }
 }
 
-module.exports = sendEmail
+
+// Function to send html email
+const SendHtmlEmail = async (email, subject, html) => {
+
+  try {
+    // create reusable transporter object using the default SMTP transport
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      pool: true,
+      secure: true,
+      service: 'gmail',
+      auth: {
+        user: 'quizblog.rw@gmail.com',
+        pass: 'ixvepscvgpgxyftz'
+      },
+      maxConnections: 20,
+      maxMessages: Infinity
+    })
+
+    // Mail options
+    const options = () => {
+      return {
+        from: '"quizblog.rw(Quiz Blog)" <quizblog.rw@gmail.com>',
+        to: email,
+        subject: subject,
+        html: html,
+      }
+    }
+
+    // Send email
+    transporter.sendMail(options(), (err, info) => {
+
+      if (err) {
+        console.log(err)
+        return err
+
+      } else {
+        console.log('Email sent to ' + info.envelope.to[0])
+        return info
+      }
+    })
+
+  } catch (err) {
+    return console.log({ msg: err.message })
+  }
+}
+
+module.exports = { sendEmail, SendHtmlEmail }

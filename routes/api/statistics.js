@@ -849,10 +849,19 @@ router.get('/dailyUserRegistration', async (req, res) => {
         {
             // make register_date only date without hours, minutes, seconds
             $project: {
-                register_date: {
+                // register_date: {
+                //     $dateToString: {
+                //         format: "%Y-%m-%d",
+                //         date: "$register_date"
+                //     }
+                // },
+                
+                // use CAT timezone instead of UTC timezone to get the correct date
+                register_date_CAT: {
                     $dateToString: {
                         format: "%Y-%m-%d",
-                        date: "$register_date"
+                        // add 2 hours to get the correct date
+                        date: { $add: ["$register_date", 2 * 60 * 60 * 1000] }
                     }
                 }
             }
@@ -860,7 +869,7 @@ router.get('/dailyUserRegistration', async (req, res) => {
         {
             // Group by register_date and count users
             $group: {
-                _id: "$register_date",
+                _id: "$register_date_CAT",
                 users: { $sum: 1 }
             }
         },
@@ -886,11 +895,6 @@ router.get('/dailyUserRegistration', async (req, res) => {
         res.json({ usersStats, total })
     })
 })
-
-
-
-
-
 
 
 // @route   GET api/statistics

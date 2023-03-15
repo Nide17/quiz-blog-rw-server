@@ -8,7 +8,7 @@ const Category = require('../../models/Category')
 const SubscribedUser = require('../../models/SubscribedUser')
 
 const { auth, authRole } = require('../../middleware/auth')
-const sendEmail = require("./emails/sendEmail")
+const {sendEmail} = require("./emails/sendEmail")
 
 // Help to randomize
 const shuffle = (v) => {

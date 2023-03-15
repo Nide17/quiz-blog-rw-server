@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const sendEmail = require("./emails/sendEmail")
+const {sendEmail} = require("./emails/sendEmail")
 
 // auth middleware to protect routes
 const { auth, authRole } = require('../../middleware/auth')
@@ -78,7 +78,6 @@ router.get('/sent-by/:userEmail', auth, async (req, res) => {
 // @route Public
 router.post("/", async (req, res) => {
   try {
-
     const newContact = await Contact.create(req.body)
 
     if (!newContact) throw Error('Something went wrong!')
@@ -92,12 +91,13 @@ router.post("/", async (req, res) => {
       },
       "./template/contact.handlebars")
 
-    // Sending e-mail to super admins and admins
-    const admins = await User.find({ role: { $in: ["Admin", "Super Admin"] } }).select("email")
 
-    admins.forEach(ad => {
+    // Sending e-mail to super admins and admins
+    const admins = await User.find({ role: { $in: ["Admin", "SuperAdmin"] } }).select("email")
+
+    admins.forEach(adm => {
       sendEmail(
-        ad.email,
+        adm.email,
         "A new message, someone contacted us!",
         {
           cEmail: newContact.email
@@ -144,6 +144,9 @@ router.put('/:id', auth, async (req, res) => {
       { $push: { "replies": req.body } },
       { new: true }
     )
+
+    console.log(req.body.to_contact)
+    console.log(req.body)
 
     // Send Reply email
     sendEmail(

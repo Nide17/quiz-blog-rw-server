@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const sendEmail = require("./emails/sendEmail")
+const {sendEmail} = require("./emails/sendEmail")
 
 // auth middleware to protect routes
 const { authRole } = require('../../middleware/auth')

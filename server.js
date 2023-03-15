@@ -77,6 +77,7 @@ app.use('/api/adverts', require('./routes/api/adverts'))
 app.use('/api/blogPosts', require('./routes/api/blogPosts/blogPosts'))
 app.use('/api/postCategories', require('./routes/api/blogPosts/postCategories'))
 app.use('/api/imageUploads', require('./routes/api/blogPosts/imageUploads'))
+app.use('/api/blogPostsViews', require('./routes/api/blogPosts/blogPostsViews'))
 
 // School API
 app.use('/schoolsapi/schools', require('./routes/api/schoolsapi/schools'))
@@ -104,6 +105,7 @@ const server = http.createServer(app);
 
 // Create an io server and allow for CORS from http://localhost:3000 with GET and POST methods
 const io = new Server(server, {
+
     cors: {
         // both http://localhost:3000 and quizblog.rw are allowed
         origin: ['http://localhost:3000', 'http://localhost:4000', 'https://quizblog.rw', 'https://www.quizblog.rw', 'http://quizblog.rw', 'http://www.quizblog.rw'],
@@ -113,7 +115,7 @@ const io = new Server(server, {
 
 var onlineUsers = []
 
-// Listen for when the client connects via socket.io - client
+// Listen for when the client connects via socket.io - client - All & Sender
 io.on('connection', (socket) => {
     console.log(`User connected ${socket.id}`);
 
@@ -126,17 +128,24 @@ io.on('connection', (socket) => {
         console.log('Online users:' + onlineUsers.length);
         console.log(JSON.stringify(onlineUsers))
 
-        // Sending message from the server to all the clients except the current client user
-        socket.emit('backJoinedUser', onlineUsers[onlineUsers.length - 1]);
+        // Sending message from the server to all the clients except the current user
+        socket.broadcast.emit('backJoinedUser', onlineUsers[onlineUsers.length - 1]);
 
         console.log('Joined last:');
         console.log(JSON.stringify(onlineUsers[onlineUsers.length - 1]))
 
-        // Sending a list of online users
+        // Sending a list of online users to all the clients including sender
         io.emit('onlineUsersList', onlineUsers);
     });
 
-    // Typing
+    // Catch the emitted message from client
+    socket.on('contactMsgClient', (contactMsg) => {
+
+        // Send message back to all except current user
+        socket.broadcast.emit("contactMsgServer", contactMsg)
+    })
+
+    // Typing - sending to all except current user
     socket.on('typing', (data) => socket.broadcast.emit('typingResponse', data));
 
     // Logging the reply message
