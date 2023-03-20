@@ -1,5 +1,5 @@
 const config = require('config')
-const {SendHtmlEmail} = require("../emails/sendEmail")
+const { SendHtmlEmail } = require("../emails/sendEmail")
 
 const twilioSID = process.env.TWILIO_ACCOUNT_SID || config.get('TWILIO_ACCOUNT_SID')
 const twilioToken = process.env.TWILIO_AUTH_TOKEN || config.get('TWILIO_AUTH_TOKEN')
@@ -156,7 +156,7 @@ const scheduledReportMessage = async () => {
 
     // BUILD THE REPORT MESSAGE
     let reportMessage = `*TODAY, ${currentDate} REPORT FOR BLOG POSTS VIEWS* \n\n`
-    reportMessage += `*Total Views:* ${report.totalViewsCount} \n\n`
+    reportMessage += `*Total Views:* ${report && report.totalViewsCount} \n\n`
     reportMessage += `*Unique Countries:* \n`
     report.uniqueCountriesCount.forEach((country) => {
         reportMessage += `${country.country}: ${country.count} \n`
@@ -205,15 +205,15 @@ const scheduledReportMessage = async () => {
 
             // SEND THE MESSAGE TO THE ARRAY OF NUMBERS
             numbers.forEach((to) => {
-            client.messages
-                .create({
-                    from: from,
-                    to: to,
-                    body: reportMessage
-                })
-                .then((message) => console.log(message.sid))
-                .catch((error) => console.error(error))
-                .finally(() => clearInterval(interval));
+                client.messages
+                    .create({
+                        from: from,
+                        to: to,
+                        body: reportMessage
+                    })
+                    .then((message) => console.log(message.sid))
+                    .catch((error) => console.error(error))
+                    .finally(() => clearInterval(interval));
             })
 
             // Sending e-mail to super admins and admins

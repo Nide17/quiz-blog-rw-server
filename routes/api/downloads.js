@@ -177,8 +177,8 @@ router.post('/', async (req, res) => {
             // }
 
             if (recentDownExist) {
-                let downDate = new Date(recentDownExist.createdAt)
-                let seconds = Math.round((now.getTime() - downDate.getTime()) / 1000)
+                let downDate = new Date(recentDownExist[0].createdAt)
+                let seconds = Math.round((now - downDate) / 1000)
 
                 if (seconds < 5) {
                     return res.status(400).json({

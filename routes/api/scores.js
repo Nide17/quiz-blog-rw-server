@@ -339,8 +339,9 @@ router.post('/', auth, async (req, res) => {
       }
 
       else if (recentScoreExist) {
-        let testDate = new Date(recentScoreExist.test_date)
-        let seconds = Math.round((now.getTime() - testDate.getTime()) / 1000)
+        // Check if the score was saved within 10 seconds
+        let testDate = new Date(recentScoreExist[0].test_date)
+        let seconds = Math.round((now - testDate) / 1000)
 
         if (seconds < 10) {
           return res.status(400).json({
