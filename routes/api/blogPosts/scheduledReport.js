@@ -77,7 +77,7 @@ const getDailyReport = async () => {
             }
         ], function (err, result) {
             if (err) {
-                res.status(400).json({ msg: err.message })
+                console.error(err.message)
             } else {
 
                 // TOTAL VIEWS COUNT
@@ -158,17 +158,17 @@ const scheduledReportMessage = async () => {
     let reportMessage = `*TODAY, ${currentDate} REPORT FOR BLOG POSTS VIEWS* \n\n`
     reportMessage += `*Total Views:* ${report && report.totalViewsCount} \n\n`
     reportMessage += `*Unique Countries:* \n`
-    report.uniqueCountriesCount.forEach((country) => {
+    report && report.uniqueCountriesCount.forEach((country) => {
         reportMessage += `${country.country}: ${country.count} \n`
     })
     reportMessage += `\n`
     reportMessage += `*Unique Devices:* \n`
-    report.uniqueDevicesCount.forEach((device) => {
+    report && report.uniqueDevicesCount.forEach((device) => {
         reportMessage += `${device.device}: ${device.count} \n`
     })
     reportMessage += `\n`
     reportMessage += `*Blog Posts Views:* \n`
-    report.blogPostsViews.forEach((blogPost) => {
+    report && report.blogPostsViews.forEach((blogPost) => {
         reportMessage += `${blogPost.blogPost}: ${blogPost.count} \n`
     })
 
@@ -177,18 +177,18 @@ const scheduledReportMessage = async () => {
         subject: `TODAY, ${currentDate} REPORT BLOG POSTS VIEWS`,
         html: `
             <h3 style="color: blue"><u>Report for ${currentDate}</u></h3>
-            <h4><u>Total Views:</u> ${report.totalViewsCount}</h4>
+            <h4><u>Total Views:</u> ${report && report.totalViewsCount}</h4>
             <h4><u>Unique Countries:</u></h4>
             <ul>
-                ${report.uniqueCountriesCount.map((country) => `<li>${country.country}: ${country.count}</li>`).join('')}
+                ${report && report.uniqueCountriesCount.map((country) => `<li>${country.country}: ${country.count}</li>`).join('')}
             </ul>
             <h4><u>Unique Devices:</u></h4>
             <ul>
-                ${report.uniqueDevicesCount.map((device) => `<li>${device.device}: ${device.count}</li>`).join('')}
+                ${report && report.uniqueDevicesCount.map((device) => `<li>${device.device}: ${device.count}</li>`).join('')}
             </ul>
             <h4><u>Blog Posts Views:</u></h4>
             <ul>
-                ${report.blogPostsViews.map((blogPost) => `<li>${blogPost.blogPost}: ${blogPost.count}</li>`).join('')}
+                ${report && report.blogPostsViews.map((blogPost) => `<li>${blogPost.blogPost}: ${blogPost.count}</li>`).join('')}
             </ul>
         `
     }
