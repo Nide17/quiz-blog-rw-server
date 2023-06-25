@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer")
 const handlebars = require("handlebars")
 const fs = require("fs")
 const path = require("path")
+const config = require('config')
 
 const sendEmail = async (email, subject, payload, template) => {
   try {
@@ -13,8 +14,8 @@ const sendEmail = async (email, subject, payload, template) => {
       secure: true,
       service: 'gmail',
       auth: {
-        user: 'quizblog.rw@gmail.com',
-        pass: 'ixvepscvgpgxyftz'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       },
       maxConnections: 20,
       maxMessages: Infinity
@@ -70,8 +71,8 @@ const SendHtmlEmail = async (email, subject, html) => {
       secure: true,
       service: 'gmail',
       auth: {
-        user: 'quizblog.rw@gmail.com',
-        pass: 'ixvepscvgpgxyftz'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       },
       maxConnections: 20,
       maxMessages: Infinity

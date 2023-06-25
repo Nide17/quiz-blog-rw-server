@@ -24,10 +24,14 @@ router.get('/', async (req, res) => {
 
     try {
         const blogPostsViews = await BlogPostView.find({}, {}, query)
+            .maxTimeMS(20000)
 
             //sort blogPostsViews by date
             .sort({ createdAt: -1 })
-            .populate('blogPost user')
+            .populate('blogPost viewer', 'title name -_id')
+            // EXCLUDE THE FOLLOWING FIELDS FROM THE QUERY _id, __v
+            .select('-_id -__v -updatedAt')
+
 
         if (!blogPostsViews) throw Error('No blog posts views found')
 
@@ -51,7 +55,7 @@ router.get('/today', async (req, res) => {
     query.limit = limit
     query.skip = skip
 
-    
+
 })
 
 
