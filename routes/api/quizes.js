@@ -8,7 +8,7 @@ const Category = require('../../models/Category')
 const SubscribedUser = require('../../models/SubscribedUser')
 
 const { auth, authRole } = require('../../middleware/auth')
-const {sendEmail} = require("./emails/sendEmail")
+const { sendEmail } = require("./emails/sendEmail")
 
 // Help to randomize
 const shuffle = (v) => {
@@ -119,15 +119,9 @@ router.get('/:quizSlug', async (req, res) => {
 
     try {
         const Query = await Quiz.findOne({ slug: req.params.quizSlug })
-            .populate('category questions created_by')
+            .populate('category questions created_by').lean()
 
         if (!Query) throw Error('Quiz not found!')
-
-        //shuffle answerOptions
-        Query.questions.map(qn => shuffle(qn.answerOptions))
-
-        //if you need to shuffle the questions too
-        shuffle(Query.questions)
 
         res.status(200).json(Query) // output quiz with shuffled questions and answers
 
