@@ -333,12 +333,13 @@ router.post('/', auth, async (req, res) => {
       const recentScoreExist = await Score.find({ taken_by }, {}, { sort: { 'test_date': -1 } })
 
       if (existingScore.length > 0) {
+        console.log('existingScore')
         return res.status(400).json({
           msg: 'Failed! score with same id already exists!'
         })
       }
 
-      else if (recentScoreExist) {
+      else if (recentScoreExist.length > 0) {
         // Check if the score was saved within 10 seconds
         let testDate = new Date(recentScoreExist[0].test_date)
         let seconds = Math.round((now - testDate) / 1000)
@@ -378,6 +379,7 @@ router.post('/', auth, async (req, res) => {
       })
 
     } catch (err) {
+      console.log(err.message)
       res.status(400).json({ msg: err.message })
     }
   }

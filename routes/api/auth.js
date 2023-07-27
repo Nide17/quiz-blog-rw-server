@@ -196,9 +196,12 @@ router.post('/forgot-password', async (req, res) => {
       "./template/requestResetPassword.handlebars"
     )
 
+    console.log(link)
+
     return link
 
   } catch (err) {
+    console.log(err)
     res.status(400).json({ msg: err.message })
   }
 })
