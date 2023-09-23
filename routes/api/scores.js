@@ -197,7 +197,7 @@ router.get('/popular-quizes', async (req, res) => {
       // Second Stage: group
       {
         $group: {
-          _id: { qId: "$quiz_scores._id", qTitle: "$quiz_scores.title" },
+          _id: { qId: "$quiz_scores._id", qTitle: "$quiz_scores.title", slug: "$quiz_scores.slug" },
           count: { $sum: 1 }
         }
       },
@@ -362,21 +362,23 @@ router.post('/', auth, async (req, res) => {
         taken_by
       })
 
-      const savedScore = await newScore.save()
+      console.log(newScore)
 
-      if (!savedScore) throw Error('Something went wrong during creation!')
+      // const savedScore = await newScore.save()
 
-      res.status(200).json({
-        _id: savedScore._id,
-        id: savedScore.id,
-        marks: savedScore.marks,
-        out_of: savedScore.out_of,
-        test_date: savedScore.test_date,
-        category: savedScore.category,
-        quiz: savedScore.quiz,
-        review: savedScore.review,
-        taken_by: savedScore.taken_by
-      })
+      // if (!savedScore) throw Error('Something went wrong during creation!')
+
+      // res.status(200).json({
+      //   _id: savedScore._id,
+      //   id: savedScore.id,
+      //   marks: savedScore.marks,
+      //   out_of: savedScore.out_of,
+      //   test_date: savedScore.test_date,
+      //   category: savedScore.category,
+      //   quiz: savedScore.quiz,
+      //   review: savedScore.review,
+      //   taken_by: savedScore.taken_by
+      // })
 
     } catch (err) {
       console.log(err.message)
