@@ -364,21 +364,21 @@ router.post('/', auth, async (req, res) => {
 
       console.log(newScore)
 
-      // const savedScore = await newScore.save()
+      const savedScore = await newScore.save()
 
-      // if (!savedScore) throw Error('Something went wrong during creation!')
+      if (!savedScore) throw Error('Something went wrong during creation!')
 
-      // res.status(200).json({
-      //   _id: savedScore._id,
-      //   id: savedScore.id,
-      //   marks: savedScore.marks,
-      //   out_of: savedScore.out_of,
-      //   test_date: savedScore.test_date,
-      //   category: savedScore.category,
-      //   quiz: savedScore.quiz,
-      //   review: savedScore.review,
-      //   taken_by: savedScore.taken_by
-      // })
+      res.status(200).json({
+        _id: savedScore._id,
+        id: savedScore.id,
+        marks: savedScore.marks,
+        out_of: savedScore.out_of,
+        test_date: savedScore.test_date,
+        category: savedScore.category,
+        quiz: savedScore.quiz,
+        review: savedScore.review,
+        taken_by: savedScore.taken_by
+      })
 
     } catch (err) {
       console.log(err.message)
