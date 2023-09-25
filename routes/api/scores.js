@@ -362,8 +362,6 @@ router.post('/', auth, async (req, res) => {
         taken_by
       })
 
-      console.log(newScore)
-
       const savedScore = await newScore.save()
 
       if (!savedScore) throw Error('Something went wrong during creation!')
