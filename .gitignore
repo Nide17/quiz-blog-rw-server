@@ -49,3 +49,5 @@ client/.eslintcache
 /routes/api/utils/profiles
 
 /qb-api
+/public
+*firebase*
