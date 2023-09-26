@@ -37,12 +37,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the Category by id
-        await Category.findById(id, (err, category) => {
-            res.status(200).json(category)
-        })
-            // Use the name of the schema path instead of the collection name
-            .populate('courseCategory')
-            .populate('quizes')
+        const category = await Category.findById(id).populate('courseCategory').populate('quizes')
+
+        if (!category) throw Error('No category found!')
+
+        res.status(200).json(category)
 
     } catch (err) {
         res.status(400).json({

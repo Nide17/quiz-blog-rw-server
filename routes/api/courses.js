@@ -34,10 +34,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the Course by id
-        await Course.findById(id, (err, course) => {
-            res.status(200).json(course)
-        })
+        const course = await Course.findById(id)
 
+        if (!course) throw Error('No course found!')
+
+        res.status(200).json(course)
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message
@@ -53,9 +54,11 @@ router.get('/courseCategory/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the courses by id
-        await Course.find({ courseCategory: id }, (err, courses) => {
-            res.status(200).json(courses)
-        })
+        const courses = await Course.find({ courseCategory: id })
+
+        if (!courses) throw Error('No courses found!')
+
+        res.status(200).json(courses)
 
     } catch (err) {
         res.status(400).json({

@@ -34,10 +34,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id;
     try {
         //Find the school by id
-        await School.findById(id, (err, school) => {
-            res.status(200).json(school);
-        })
+        const school = await School.findById(id);
 
+        if (!school) throw Error('No school found!');
+
+        res.status(200).json(school);
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message

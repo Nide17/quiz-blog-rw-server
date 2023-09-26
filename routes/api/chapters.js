@@ -33,9 +33,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the chapter by id
-        await Chapter.findById(id, (err, chapter) => {
-            res.status(200).json(chapter)
-        })
+         const chapter = await Chapter.findById(id)
+
+        if (!chapter) throw Error('No chapter found!')
+
+        res.status(200).json(chapter)
 
     } catch (err) {
         res.status(400).json({
@@ -52,10 +54,11 @@ router.get('/course/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the chapters by id
-        await Chapter.find({ course: id }, (err, chapters) => {
-            res.status(200).json(chapters)
-        })
-            .populate('course')
+        const chapters = await Chapter.find({ course: id }).populate('course')
+
+        if (!chapters) throw Error('No chapters found!')
+
+        res.status(200).json(chapters)
 
     } catch (err) {
         res.status(400).json({

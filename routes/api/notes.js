@@ -82,10 +82,11 @@ router.get('/chapter/:id', auth, async (req, res) => {
     let id = req.params.id
     try {
         //Find the notes by id
-        await Notes.find({ chapter: id }, (err, notes) => {
-            res.status(200).json(notes)
-        })
-            .populate('chapter')
+        const notes = await Notes.find({ chapter: id }).populate('chapter')
+
+        if (!notes) throw Error('No notes found!')
+
+        res.status(200).json(notes)
 
     } catch (err) {
         res.status(400).json({

@@ -35,10 +35,11 @@ router.get('/:id', auth, async (req, res) => {
     let id = req.params.id;
     try {
         //Find the Category by id
-        await CourseCategory.findById(id, (err, category) => {
-            res.status(200).json(category);
-        })
+        const category = await CourseCategory.findById(id);
 
+        if (!category) throw Error('No category found!');
+
+        res.status(200).json(category);
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message

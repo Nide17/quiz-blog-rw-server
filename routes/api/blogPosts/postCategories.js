@@ -33,9 +33,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the Category by id
-        await PostCategory.findById(id, (err, category) => {
-            res.status(200).json(category)
-        })
+        const category = await PostCategory.findById(id)
+
+        if (!category) throw Error('No category found!')
+
+        res.status(200).json(category)
 
     } catch (err) {
         res.status(400).json({

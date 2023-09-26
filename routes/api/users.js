@@ -89,9 +89,11 @@ router.get('/:id', authRole(['SuperAdmin']), async (req, res) => {
   let id = req.params.id
   try {
     //Find the User by id
-    await User.findById(id, (err, user) => {
-      res.status(200).json(user)
-    })
+    const user = User.findById(id)
+
+    if (!user) throw Error('No user found!')
+
+    res.status(200).json(user)
 
   } catch (err) {
     res.status(400).json({

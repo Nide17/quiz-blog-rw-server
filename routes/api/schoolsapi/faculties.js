@@ -32,9 +32,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the faculty by id
-        await Faculty.findById(id, (err, faculty) => {
-            res.status(200).json(faculty)
-        })
+const faculty = await Faculty.findById(id)
+
+        if (!faculty) throw Error('No faculty found!')
+
+        res.status(200).json(faculty)
 
     } catch (err) {
         res.status(400).json({
@@ -51,9 +53,11 @@ router.get('/level/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the faculties by id
-        await Faculty.find({ level: id }, (err, faculties) => {
-            res.status(200).json(faculties)
-        })
+        const faculties = await Faculty.find({ level: id })
+
+        if (!faculties) throw Error('No faculties found!')
+
+        res.status(200).json(faculties)
 
     } catch (err) {
         res.status(400).json({

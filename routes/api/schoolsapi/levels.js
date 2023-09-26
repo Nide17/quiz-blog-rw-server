@@ -33,9 +33,11 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id;
     try {
         //Find the Level by id
-        await Level.findById(id, (err, level) => {
-            res.status(200).json(level);
-        })
+        const level = await Level.findById(id);
+
+        if (!level) throw Error('No level found!');
+
+        res.status(200).json(level);
 
     } catch (err) {
         res.status(400).json({
@@ -52,9 +54,11 @@ router.get('/school/:id', async (req, res) => {
     let id = req.params.id;
     try {
         //Find the levels by id
-        await Level.find({ school: id }, (err, levels) => {
-            res.status(200).json(levels);
-        })
+        const levels = await Level.find({ school: id })
+
+        if (!levels) throw Error('No levels found!');
+
+        res.status(200).json(levels);
 
     } catch (err) {
         res.status(400).json({
@@ -126,7 +130,10 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!level) throw Error('Level is not found!')
 
         // Delete faculties belonging to this level
-        await Faculty.remove({ level: level._id });
+        const remFaculty = await Faculty.remove({ level: level._id });
+
+        if (!remFaculty)
+            throw Error('Something went wrong while deleting!');
 
         // Delete level
         const removedLevel = await level.remove();
