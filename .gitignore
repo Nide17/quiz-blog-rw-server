@@ -51,3 +51,4 @@ client/.eslintcache
 /qb-api
 /public
 *firebase*
+/.github
