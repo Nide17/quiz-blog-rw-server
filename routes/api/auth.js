@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 const config = require('config')
 const router = express.Router()
 const { auth } = require('../../middleware/auth')
-const {sendEmail} = require("./emails/sendEmail")
+const { sendEmail } = require("./emails/sendEmail")
 
 // User Model
 const User = require('../../models/User')
@@ -107,7 +107,7 @@ router.post('/register', async (req, res) => {
 
     sendEmail(
       savedUser.email,
-      "Welcome to Quiz Blog, your account is created!",
+      "Welcome to Quiz-Blog, your account is created!",
       {
         name: savedUser.name,
       },
@@ -188,7 +188,7 @@ router.post('/forgot-password', async (req, res) => {
 
     sendEmail(
       userToReset.email,
-      "Password reset for your Quiz Blog account!",
+      "Password reset for your Quiz-Blog account!",
       {
         name: userToReset.name,
         link: link,
@@ -243,7 +243,7 @@ router.post('/reset-password', async (req, res) => {
 
   sendEmail(
     resetUser.email,
-    "Password reset for your Quiz blog account is successful!",
+    "Password reset for your Quiz-Blog account is successful!",
     {
       name: resetUser.name,
     },

@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const {sendEmail} = require("./emails/sendEmail")
+const { sendEmail } = require("./emails/sendEmail")
 
 // auth middleware to protect routes
 const { auth, authRole } = require('../../middleware/auth')
@@ -85,7 +85,7 @@ router.post("/", async (req, res) => {
     // Sending e-mail to contacted user
     sendEmail(
       newContact.email,
-      "Thank you for contacting Quiz Blog!",
+      "Thank you for contacting Quiz-Blog!",
       {
         name: newContact.contact_name,
       },

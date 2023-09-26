@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, callback) => {
         const fileName = file.originalname.toUpperCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, fileName.replace(/\./g, '-[Shared by QuizBlog].'))
+        callback(null, fileName.replace(/\./g, '-[Shared by Quiz-Blog].'))
     }
 })
 
@@ -41,7 +41,7 @@ const multerS3Config = multerS3({
     },
     key: (req, file, callback) => {
         const fileName = file.originalname.toUpperCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, fileName.replace(/\./g, '-[Shared by QuizBlog].'))
+        callback(null, fileName.replace(/\./g, '-[Shared by Quiz-Blog].'))
     }
 })
 

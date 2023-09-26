@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, callback) => {
         const fileName = file.originalname.toUpperCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, fileName.replace(/\./g, '-[QuizBlog].'))
+        callback(null, fileName.replace(/\./g, '-[Quiz-Blog].'))
     }
 })
 

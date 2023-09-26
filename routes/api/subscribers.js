@@ -2,7 +2,7 @@ const express = require("express");
 const config = require('config')
 const router = express.Router();
 const { auth, authRole } = require('../../middleware/auth');
-const {sendEmail} = require("./emails/sendEmail");
+const { sendEmail } = require("./emails/sendEmail");
 
 // SubscribedUser Model
 const SubscribedUser = require('../../models/SubscribedUser');
@@ -54,7 +54,7 @@ router.post('/', async (req, res) => {
 
     sendEmail(
       savedSubscriber.email,
-      "Thank you for subscribing to Quiz Blog!",
+      "Thank you for subscribing to Quiz-Blog!",
       {
         name: savedSubscriber.name,
         unsubscribeLink: `${clientURL}/unsubscribe`

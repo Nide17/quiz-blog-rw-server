@@ -83,7 +83,7 @@ app.use('/api/blogPostsViews', require('./routes/api/blogPosts/blogPostsViews'))
 app.use('/schoolsapi/schools', require('./routes/api/schoolsapi/schools'))
 app.use('/schoolsapi/levels', require('./routes/api/schoolsapi/levels'))
 app.use('/schoolsapi/faculties', require('./routes/api/schoolsapi/faculties'))
-// app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz Blog') })
+// app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz-Blog') })
 
 //Edit for deployment || serve static assets if in production
 if (process.env.NODE_ENV === 'production') {
