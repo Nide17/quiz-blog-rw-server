@@ -318,16 +318,17 @@ router.get('/taken-by/:id', auth, async (req, res) => {
 // @route Private: accessed by logged in user
 router.post('/', auth, async (req, res) => {
 
-  const { id, marks, out_of, category, quiz, review, taken_by } = req.body
+  const { id, out_of, category, quiz, review, taken_by } = req.body
+  const marks = req.body.marks ? req.body.marks : 0
   var now = new Date()
 
   // Simple validation
-  if (!id || !marks || !out_of || !category || !quiz || !review || !taken_by) {
-    return res.status(400).json({ msg: req.body })
+  if (!id || !out_of || !category || !quiz || !review || !taken_by) {
+    const missing = !id ? 'Error' : !out_of ?'No total' : !category ?'No category' : !quiz ?'No quiz' : !review ?'No review' : !taken_by ?'No taker user' : 'Wrong'
+    return res.status(400).json({ msg: missing + '!' })
   }
 
   else {
-
     try {
       const existingScore = await Score.find({ id: id })
       const recentScoreExist = await Score.find({ taken_by }, {}, { sort: { 'test_date': -1 } })
@@ -353,51 +354,33 @@ router.post('/', auth, async (req, res) => {
 
         else {
           console.log('newScore not recent')
-          const newScore = new Score({
-            id,
-            marks,
-            out_of,
-            test_date: now,
-            category,
-            quiz,
-            review,
-            taken_by
-          })
-
-          const savedScore = await newScore.save()
-
-          if (!savedScore) throw Error('Something went wrong during creation!')
-
-          res.status(200).json({
-            _id: savedScore._id,
-            id: savedScore.id,
-            marks: savedScore.marks,
-            out_of: savedScore.out_of,
-            test_date: savedScore.test_date,
-            category: savedScore.category,
-            quiz: savedScore.quiz,
-            review: savedScore.review,
-            taken_by: savedScore.taken_by
-          })
         }
       }
 
       else {
         console.log('newScore total score')
-        const newScore = new Score({
-          id,
-          marks,
-          out_of,
-          test_date: now,
-          category,
-          quiz,
-          review,
-          taken_by
-        })
+      }
 
-        const savedScore = await newScore.save()
+      const newScore = new Score({
+        id,
+        marks,
+        out_of,
+        test_date: now,
+        category,
+        quiz,
+        review,
+        taken_by
+      })
 
-        if (!savedScore) throw Error('Something went wrong during creation!')
+      const savedScore = await newScore.save()
+
+      if (!savedScore) {
+        console.log('newScore not saved')
+        throw Error('Something went wrong during creation!')
+      }
+
+      else {
+        console.log('newScore saved')
 
         res.status(200).json({
           _id: savedScore._id,
@@ -410,15 +393,15 @@ router.post('/', auth, async (req, res) => {
           review: savedScore.review,
           taken_by: savedScore.taken_by
         })
-
       }
+
     } catch (err) {
       console.log(err.message)
-      res.status(400).json({ msg: err.message })
+      res.status(400).json({ msg: 'Failed to save score! ' + err.message })
     }
   }
-})
 
+})
 // @route DELETE api/scores
 // @route delete a Score
 // @route Private: Accessed by admin only

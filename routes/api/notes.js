@@ -64,20 +64,15 @@ router.get('/landingDisplay', async (req, res) => {
 // @desc    Get all notes by ccatg id
 // @access  Public
 router.get('/ccatg/:id', async (req, res) => {
-    let id = req.params.id
+    let id = req.params.id;
     try {
-        //Find the notes by id
-        await Notes.find({ courseCategory: id }, (err, notes) => {
-            res.status(200).json(notes)
-        })
-        // .populate('courseCategory')
-
+        const notes = await Notes.find({ courseCategory: id }).populate('courseCategory');
+        if (!notes) throw Error('No notes found!');
+        res.status(200).json(notes);
     } catch (err) {
-        res.status(400).json({
-            msg: 'Failed to retrieve! ' + err.message
-        })
+        res.status(400).json({ msg: 'Failed to retrieve! ' + err.message });
     }
-})
+});
 
 // @route   GET /api/notes/chapter/:id
 // @desc    Get all notes by chapter id
