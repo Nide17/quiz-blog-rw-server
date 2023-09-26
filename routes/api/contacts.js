@@ -59,11 +59,11 @@ router.get('/sent-by/:userEmail', auth, async (req, res) => {
   let userEmail = req.params.userEmail
   try {
     //Find the contacts by userEmail
-    await Contact.find({ email: userEmail }, (err, contacts) => {
-      res.status(200).json(contacts)
-    })
-      //sort contacts by contact_date
-      .sort({ contact_date: -1 })
+    const contacts = await Contact.find({ email: userEmail }).sort({ contact_date: -1 })
+    
+    if (!contacts) throw Error('No contacts found')
+
+    res.status(200).json(contacts)
 
   } catch (err) {
     res.status(400).json({
