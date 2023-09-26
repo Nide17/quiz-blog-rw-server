@@ -108,10 +108,12 @@ router.get('/comments-on/:id', auth, async (req, res) => {
     let id = req.params.id
     try {
         //Find the comments by id
-        await QuestionComment.find({ question: id }, (err, comments) => {
-            res.status(200).json(comments)
-        })
+        const comments = await QuestionComment.find({ question: id })
             .populate('sender question', '_id questionText role name email')
+
+        if (!comments) throw Error('No comments found')
+
+        res.status(200).json(comments)
 
     } catch (err) {
         res.status(400).json({
@@ -128,10 +130,11 @@ router.get('/quiz/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the comments by id
-        await QuestionComment.find({ quiz: id }, (err, comments) => {
-            res.status(200).json(comments)
-        })
-            .populate('sender question quiz', '_id questionText title role name email')
+        const comments = await QuestionComment.find({ quiz: id }).populate('sender question quiz', '_id questionText title role name email')
+
+        if (!comments) throw Error('No comments found')
+
+        res.status(200).json(comments)
 
     } catch (err) {
         res.status(400).json({

@@ -47,10 +47,14 @@ router.get('/comments-on/:id', auth, async (req, res) => {
     let id = req.params.id
     try {
         //Find the comments by id
-        await QuizComment.find({ quiz: id }, (err, comments) => {
-            res.status(200).json(comments)
-        })
+        const comments = await QuizComment.find({ quiz: id })
+            //sort comments by createdAt
+            .sort({ createdAt: -1 })
             .populate('sender', 'role name email')
+
+        if (!comments) throw Error('No comments found')
+
+        res.status(200).json(comments)
 
     } catch (err) {
         res.status(400).json({

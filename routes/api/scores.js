@@ -130,11 +130,11 @@ router.get('/one-score/:id', auth, async (req, res) => {
   let id = req.params.id
   try {
     //Find the score by id
-    await Score.findOne({ id }, (err, score) => {
-      res.status(200).json(score)
-    })
-      // Use the name of the schema path instead of the collection name
-      .populate('category quiz user')
+    const score = await Score.findOne({ id }).populate('category quiz taken_by')
+
+    if (!score) throw Error('No score found')
+
+    res.status(200).json(score)
 
   } catch (err) {
     res.status(400).json({
@@ -142,7 +142,6 @@ router.get('/one-score/:id', auth, async (req, res) => {
     })
   }
 })
-
 
 // @route   GET /api/scores/ranking/:id
 // @desc    Get one score
@@ -299,11 +298,11 @@ router.get('/taken-by/:id', auth, async (req, res) => {
   let id = req.params.id
   try {
     //Find the scores by id
-    await Score.find({ taken_by: id }, (err, scores) => {
-      res.status(200).json(scores)
-    })
-      // Use the name of the schema path instead of the collection name
-      .populate('category quiz user')
+    const scores = await Score.find({ taken_by: id }).populate('category quiz taken_by')
+
+    if (!scores) throw Error('No scores found')
+
+    res.status(200).json(scores)
 
   } catch (err) {
     res.status(400).json({
@@ -324,7 +323,7 @@ router.post('/', auth, async (req, res) => {
 
   // Simple validation
   if (!id || !out_of || !category || !quiz || !review || !taken_by) {
-    const missing = !id ? 'Error' : !out_of ?'No total' : !category ?'No category' : !quiz ?'No quiz' : !review ?'No review' : !taken_by ?'No taker user' : 'Wrong'
+    const missing = !id ? 'Error' : !out_of ? 'No total' : !category ? 'No category' : !quiz ? 'No quiz' : !review ? 'No review' : !taken_by ? 'No taker user' : 'Wrong'
     return res.status(400).json({ msg: missing + '!' })
   }
 
