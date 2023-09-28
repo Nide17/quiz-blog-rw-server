@@ -137,11 +137,16 @@ router.get('/downloaded-by/:id', auth, async (req, res) => {
     let id = req.params.id
     try {
         //Find the downloads by id
-        await Download.find({ downloaded_by: id }, (err, downloads) => {
-            res.status(200).json(downloads)
-        })
-            // Use the name of the schema path instead of the collection name
-            .populate('notes course chapter downloaded_by')
+        // await Download.find({ downloaded_by: id }, (err, downloads) => {
+        //     res.status(200).json(downloads)
+        // })
+        //     // Use the name of the schema path instead of the collection name
+        //     .populate('notes course chapter downloaded_by')
+        const downloads = await Download.find({ downloaded_by: id }).populate('notes course chapter downloaded_by')
+
+        if (!downloads) throw Error('No downloads found!')
+
+        res.status(200).json(downloads)
 
     } catch (err) {
         res.status(400).json({
