@@ -337,8 +337,8 @@ router.post('/', auth, async (req, res) => {
   var now = new Date()
 
   // Simple validation
-  if (!id || !out_of || !category || !quiz || !review || !taken_by) {
-    const missing = !id ? 'Error' : !out_of ? 'No total' : !category ? 'No category' : !quiz ? 'No quiz' : !review ? 'No review' : !taken_by ? 'No taker user' : 'Wrong'
+  if (!id || !out_of || !review || !taken_by) {
+    const missing = !id ? 'Error' : !out_of ? 'No total' : !review ? 'No review' : !taken_by ? 'Not logged in' : 'Wrong'
     return res.status(400).json({ msg: missing + '!' })
   }
 
