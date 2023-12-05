@@ -1,6 +1,8 @@
 const express = require("express")
 const mongoose = require('mongoose')
 const router = express.Router()
+const config = require('config')
+const axios = require('axios')
 
 // auth middleware to protect routes
 const { auth, authRole } = require('../../middleware/auth')
@@ -14,7 +16,7 @@ const Category = require('../../models/Category')
 // @route GET api/scores
 // @route Get All scores
 // @route Private: accessed by authorization
-router.get('/', async (req, res) => {
+router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   // Pagination
   const totalPages = await Score.countDocuments({})
@@ -73,8 +75,12 @@ router.get('/', async (req, res) => {
 
     if (!scores) throw Error('No scores exist')
 
-    if (pageNo > 0) {
+    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
+    // console.log(archiveUrl)
+    // const archive1Response = await axios.get(archiveUrl)
+    // console.log(archive1Response.data)
 
+    if (pageNo > 0) {
       return res.status(200).json({
         totalPages: Math.ceil(totalPages / PAGE_SIZE),
         scores
@@ -90,7 +96,7 @@ router.get('/', async (req, res) => {
 })
 
 // @route   GET /api/scores/quiz-creator/:id
-// @desc    Get all scores by taker
+// @desc    Get all scores by creator
 // @access  Private:
 router.get('/quiz-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
@@ -152,7 +158,7 @@ router.get('/quiz-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), as
 
   } catch (err) {
     res.status(400).json({
-      msg: 'Failed to retrieve! ' + err.message
+      msg: 'Failed to retrieve: ' + err.message
     })
   }
 
@@ -195,7 +201,7 @@ router.get('/one-score/:id', auth, async (req, res) => {
 })
 
 // @route   GET /api/scores/ranking/:id
-// @desc    Get one score
+// @desc    Get all scores by quiz
 // @access  Public
 router.get('/ranking/:id', async (req, res) => {
 
@@ -235,7 +241,7 @@ router.get('/ranking/:id', async (req, res) => {
 })
 
 // @route   GET /api/scores/popular-quizes
-// @desc    Get popular quizes
+// @desc    Get popular quizes by today's scores
 // @access  Public
 router.get('/popular-quizes', async (req, res) => {
 
@@ -286,7 +292,7 @@ router.get('/popular-quizes', async (req, res) => {
 })
 
 // @route   GET /api/scores/popular
-// @desc    Get popular quizes
+// @desc    Get popular users by today's scores
 // @access  Public
 router.get('/monthly-user', async (req, res) => {
 
@@ -385,6 +391,14 @@ router.get('/taken-by/:id', auth, async (req, res) => {
 
     if (!scores) throw Error('No scores found')
 
+    const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023/taken-by/${id}`
+
+    const archive1Response = await axios.get(archiveUrl)
+
+    // APPEND ARCHIVE SCORES
+    if (archive1Response.data.length > 0) {
+      scores.push(...archive1Response.data)
+    }
     res.status(200).json(scores)
 
   } catch (err) {
