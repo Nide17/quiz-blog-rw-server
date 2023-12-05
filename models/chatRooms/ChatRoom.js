@@ -22,5 +22,10 @@ const ChatRoomSchema = new Schema({
         timestamps: true
     });
 
-//chatRoom: the name of this model
-module.exports = mongoose.model('chatRoom', ChatRoomSchema);
+// //chatRoom: the name of this model
+// module.exports = mongoose.model('chatRoom', ChatRoomSchema);
+//ChatRoom: the name of this model - using the db connection
+const db = require('../../server').db
+const ChatRoom = db.model('chatRoom', ChatRoomSchema)
+
+module.exports = ChatRoom

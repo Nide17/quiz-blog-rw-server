@@ -7,11 +7,14 @@ const { auth, authRole } = require('../../middleware/auth')
 
 //Score Model : use capital letters since it's a model
 const Score = require('../../models/Score')
+const User = require('../../models/User')
+const Quiz = require('../../models/Quiz')
+const Category = require('../../models/Category')
 
 // @route GET api/scores
 // @route Get All scores
 // @route Private: accessed by authorization
-router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
+router.get('/', async (req, res) => {
 
   // Pagination
   const totalPages = await Score.countDocuments({})
@@ -27,13 +30,46 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     const scores = pageNo > 0 ?
       await Score.find({}, {}, query)
         .sort({ test_date: -1 })
-        .populate('quiz category taken_by') :
+        // .populate('quiz category taken_by') :
+        .populate({
+          path: 'quiz',
+          model: Quiz,
+          select: 'title slug'
+        })
+        .populate({
+          path: 'category',
+          model: Category,
+          select: 'title'
+        })
+        .populate({
+          path: 'taken_by',
+          model: User,
+          select: 'name email'
+        })
+        .exec() :
 
-      await Score.find()
-
-        //sort scores by creation_date
+      await Score.find().limit(2)
         .sort({ test_date: -1 })
-        .populate('quiz category taken_by')
+        // populate the quiz from another mongoose connection different from the default one used in the Score model
+        .populate({
+          path: 'quiz',
+          model: Quiz,
+          select: 'title slug'
+        }) 
+        // populate the category from another mongoose connection different from the default one used in the Score model
+        .populate({
+          path: 'category',
+          model: Category,
+          select: 'title'
+        })
+        // populate the taken_by from another mongoose connection different from the default one used in the Score model
+        .populate({
+          path: 'taken_by',
+          model: User,
+          select: 'name email'
+        })
+        .exec()
+
 
     if (!scores) throw Error('No scores exist')
 
@@ -49,7 +85,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     }
 
   } catch (err) {
-    res.status(400).json({ msg: err.message + "Please login first!" })
+    return res.status(400).json({ msg: err.message })
   }
 })
 
@@ -130,7 +166,22 @@ router.get('/one-score/:id', auth, async (req, res) => {
   let id = req.params.id
   try {
     //Find the score by id
-    const score = await Score.findOne({ id }).populate('category quiz taken_by')
+    const score = await Score.findOne({ id })
+      .populate({
+        path: 'quiz',
+        model: Quiz,
+        select: 'title slug'
+      })
+      .populate({
+        path: 'category',
+        model: Category,
+        select: 'title'
+      })
+      .populate({
+        path: 'taken_by',
+        model: User,
+        select: 'name email'
+      })
 
     if (!score) throw Error('No score found')
 
@@ -155,7 +206,22 @@ router.get('/ranking/:id', async (req, res) => {
       .sort({ marks: -1 })
       .limit(20)
       .select('quiz taken_by category id marks out_of')
-      .populate('quiz taken_by category')
+      // .populate('quiz taken_by category')
+      .populate({
+        path: 'quiz',
+        model: Quiz,
+        select: 'title slug'
+      })
+      .populate({
+        path: 'category',
+        model: Category,
+        select: 'title'
+      })
+      .populate({
+        path: 'taken_by',
+        model: User,
+        select: 'name email'
+      })
 
     if (!scores) throw Error('No scores found')
 
@@ -230,10 +296,11 @@ router.get('/monthly-user', async (req, res) => {
   try {
     await Score.aggregate([
       {
-        // Join with quiz collection
+        // Join with quiz collection from db connection (const Quiz = require('../../models/Quiz'))
+        // Note: Score model has a default connection to the dbScores
         $lookup:
         {
-          from: "quizzes",
+          from: 'quiz', // 'quiz' is the name of the collection in the db 'dbQuizzes
           localField: "quiz",
           foreignField: "_id",
           as: "quiz_scores"
@@ -243,7 +310,7 @@ router.get('/monthly-user', async (req, res) => {
         // Join with quiz collection
         $lookup:
         {
-          from: "users",
+          from: 'user', // 'user' is the name of the collection in the db 'dbUsers
           localField: "taken_by",
           foreignField: "_id",
           as: "taken_by_scores"
@@ -298,7 +365,23 @@ router.get('/taken-by/:id', auth, async (req, res) => {
   let id = req.params.id
   try {
     //Find the scores by id
-    const scores = await Score.find({ taken_by: id }).populate('category quiz taken_by')
+    const scores = await Score.find({ taken_by: id })
+    // .populate('category quiz taken_by')
+    .populate({
+      path: 'quiz',
+      model: Quiz,
+      select: 'title slug'
+    })
+    .populate({
+      path: 'category',
+      model: Category,
+      select: 'title'
+    })
+    .populate({
+      path: 'taken_by',
+      model: User,
+      select: 'name email'
+    })
 
     if (!scores) throw Error('No scores found')
 
@@ -322,8 +405,8 @@ router.post('/', auth, async (req, res) => {
   var now = new Date()
 
   // Simple validation
-  if (!id || !out_of || !category || !quiz || !review || !taken_by) {
-    const missing = !id ? 'Error' : !out_of ? 'No total' : !category ? 'No category' : !quiz ? 'No quiz' : !review ? 'No review' : !taken_by ? 'No taker user' : 'Wrong'
+  if (!id || !out_of || !review || !taken_by) {
+    const missing = !id ? 'Error' : !out_of ? 'No total' : !review ? 'No review' : !taken_by ? 'Not logged in' : 'Wrong'
     return res.status(400).json({ msg: missing + '!' })
   }
 
@@ -348,6 +431,8 @@ router.post('/', auth, async (req, res) => {
           console.log('recentScoreExist')
           return res.status(400).json({
             msg: 'Score duplicate! You took this quiz in less than a minute ago!'
+
+            // Score already saved, redirect to review or score.
           })
         }
 

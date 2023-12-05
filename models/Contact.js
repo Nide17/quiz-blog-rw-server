@@ -46,5 +46,11 @@ const ContactSchema = new Schema({
     }
 });
 
-//contact: the name of this model
-module.exports = mongoose.model('contact', ContactSchema);
+// //contact: the name of this model
+// module.exports = mongoose.model('contact', ContactSchema);
+// Contact: the name of this model - using the db connection
+const db = require('../server').db
+
+const Contact = db.model('contact', ContactSchema)
+
+module.exports = Contact

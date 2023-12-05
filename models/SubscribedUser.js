@@ -21,5 +21,10 @@ const SubscribedUserSchema = new Schema({
   }
 });
 
-//subscribedUser: the name of this model
-module.exports = mongoose.model('subscribedUser', SubscribedUserSchema);
+// //subscribedUser: the name of this model
+// module.exports = mongoose.model('subscribedUser', SubscribedUserSchema);
+//SubscribedUser: the name of this model - using the db connection
+const db = require('../server').db
+const SubscribedUser = db.model('subscribedUser', SubscribedUserSchema)
+
+module.exports = SubscribedUser

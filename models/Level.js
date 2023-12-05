@@ -20,5 +20,10 @@ const LevelSchema = new Schema({
         timestamps: true
     });
 
-//level: the name of this model
-module.exports = mongoose.model('level', LevelSchema);
+// //level: the name of this model
+// module.exports = mongoose.model('level', LevelSchema);
+//Level: the name of this model - using the db connection
+const db = require('../server').db
+const Level = db.model('level', LevelSchema)
+
+module.exports = Level

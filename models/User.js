@@ -61,5 +61,10 @@ const UserSchema = new Schema({
   }
 });
 
-//User: the name of this model
-module.exports = mongoose.model('user', UserSchema);
+// //User: the name of this model
+// module.exports = mongoose.model('user', UserSchema);
+//Quiz: the name of this model - using the db connection
+const db = require('../server').db
+const User = db.model('user', UserSchema)
+
+module.exports = User

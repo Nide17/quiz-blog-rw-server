@@ -20,5 +20,10 @@ const imageUploadSchema = new Schema({
         timestamps: true,
     })
 
-//Export
-module.exports = mongoose.model("ImageUpload", imageUploadSchema)
+// //Export
+// module.exports = mongoose.model("ImageUpload", imageUploadSchema)
+//ImageUpload: the name of this model - using the db connection
+const db = require('../../server').db
+const ImageUpload = db.model('ImageUpload', imageUploadSchema)
+
+module.exports = ImageUpload

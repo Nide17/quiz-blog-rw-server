@@ -38,5 +38,10 @@ const FaqSchema = new Schema({
         timestamps: true
     });
 
-//broadcast: the name of this model
-module.exports = mongoose.model('faq', FaqSchema);
+// //Faq: the name of this model
+// module.exports = mongoose.model('faq', FaqSchema);
+//Faq: the name of this model - using the db connection
+const db = require('../server').db
+const Faq = db.model('faq', FaqSchema)
+
+module.exports = Faq

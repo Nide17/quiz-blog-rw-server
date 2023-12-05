@@ -39,5 +39,11 @@ const CategorySchema = new Schema({
   }
 });
 
-//Category: the name of this model
-module.exports = mongoose.model('category', CategorySchema);
+// //Category: the name of this model
+// module.exports = mongoose.model('category', CategorySchema);
+
+//Category: the name of this model - using the db connection
+const db = require('../server').db
+const Category = db.model('category', CategorySchema)
+
+module.exports = Category

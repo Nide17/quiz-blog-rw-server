@@ -33,5 +33,10 @@ const CourseSchema = new Schema({
         timestamps: true
     });
 
-//Course: the name of this model
-module.exports = mongoose.model('course', CourseSchema);
+// //Course: the name of this model
+// module.exports = mongoose.model('course', CourseSchema);
+//Course: the name of this model - using the db connection
+const db = require('../server').db
+const Course = db.model('course', CourseSchema)
+
+module.exports = Course

@@ -67,7 +67,7 @@ const ScoreSchema = new Schema({
             }
         ]
 
-    }, 
+    },
     category: {
         type: Schema.Types.ObjectId,
         ref: 'category'
@@ -82,5 +82,9 @@ const ScoreSchema = new Schema({
     }
 });
 
-//Score: the name of this model
-module.exports = mongoose.model('score', ScoreSchema);
+//Score: the name of this model - using the dbscores connection
+const dbScores = require('../server').dbScores;
+const Score = dbScores.model('score', ScoreSchema);
+
+//export the model
+module.exports = Score;

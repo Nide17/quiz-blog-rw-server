@@ -32,5 +32,10 @@ const DownloadSchema = new Schema({
         timestamps: true
     });
 
-//download: the name of this model
-module.exports = mongoose.model('download', DownloadSchema);
+// //download: the name of this model
+// module.exports = mongoose.model('download', DownloadSchema);
+//Download: the name of this model - using the db connection
+const db = require('../server').db
+const Download = db.model('download', DownloadSchema)
+
+module.exports = Download

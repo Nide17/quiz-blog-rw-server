@@ -33,5 +33,10 @@ const QuestionCommentSchema = new Schema({
         timestamps: true
     });
 
-//questionComment: the name of this model
-module.exports = mongoose.model('questionComment', QuestionCommentSchema);
+// //questionComment: the name of this model
+// module.exports = mongoose.model('questionComment', QuestionCommentSchema);
+//QuestionComment: the name of this model - using the db connection
+const db = require('../server').db
+const QuestionComment = db.model('questionComment', QuestionCommentSchema)
+
+module.exports = QuestionComment

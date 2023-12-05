@@ -72,4 +72,10 @@ QuizSchema.pre("validate", function (next) {
 })
 
 //Quiz: the name of this model
-module.exports = mongoose.model('quiz', QuizSchema)
+// module.exports = mongoose.model('quiz', QuizSchema)
+
+//Quiz: the name of this model - using the db connection
+const db = require('../server').db
+const Quiz = db.model('quiz', QuizSchema)
+
+module.exports = Quiz

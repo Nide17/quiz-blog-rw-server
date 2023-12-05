@@ -25,5 +25,10 @@ const SchoolSchema = new Schema({
         timestamps: true
     });
 
-//school: the name of this model
-module.exports = mongoose.model('school', SchoolSchema);
+// //school: the name of this model
+// module.exports = mongoose.model('school', SchoolSchema);
+//School: the name of this model - using the db connection
+const db = require('../server').db
+const School = db.model('school', SchoolSchema)
+
+module.exports = School

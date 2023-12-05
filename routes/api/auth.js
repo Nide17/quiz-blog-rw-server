@@ -9,7 +9,6 @@ const { sendEmail } = require("./emails/sendEmail")
 
 // User Model
 const User = require('../../models/User')
-// const ULog = require('../../models/ULog')
 const PswdResetToken = require('../../models/PswdResetToken')
 
 // @route   POST api/auth/login
@@ -46,19 +45,10 @@ router.post('/login', async (req, res) => {
 
     if (!token) throw Error('Couldnt sign in, try again!')
 
-    // const userLog = new ULog({
-    //   userId: user._id,
-    //   loggedInAt: new Date(),
-    //   expiresAt: new Date(new Date().setHours(new Date().getHours() + 2))
-    // })
-
-    // const savedULog = await userLog.save()
-    // if (!savedULog) throw Error('Log not saved!')
-    // res.status(200).json({
-    //   token,
-    //   user,
-    //   savedULog
-    // })
+    res.status(200).json({
+      token,
+      user
+    })
   } catch (err) {
     res.status(400).json({ msg: err.message })
   }
@@ -123,24 +113,15 @@ router.post('/register', async (req, res) => {
       { expiresIn: '2h' }
     )
 
-    // const userLog = new ULog({
-    //   userId: savedUser._id,
-    //   loggedInAt: new Date(),
-    //   expiresAt: new Date(new Date().setHours(new Date().getHours() + 2))
-    // })
-
-    // const savedULog = await userLog.save()
-
-    // res.status(200).json({
-    //   token,
-    //   user: {
-    //     _id: savedUser._id,
-    //     name: savedUser.name,
-    //     email: savedUser.email,
-    //     role: savedUser.role,
-    //     savedULog
-    //   }
-    // })
+    res.status(200).json({
+      token,
+      user: {
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role
+      }
+    })
   } catch (err) {
     res.status(400).json({ msg: err.message })
   }
@@ -212,46 +193,54 @@ router.post('/forgot-password', async (req, res) => {
 
 router.post('/reset-password', async (req, res) => {
 
-  const { userId, token, password } = req.body
+  try {
 
-  let passwordResetToken = await PswdResetToken.findOne({ userId })
+    const { userId, token, password } = req.body
 
-  if (!passwordResetToken) {
-    throw new Error("Invalid or expired password reset token")
+    let passwordResetToken = await PswdResetToken.findOne({ userId })
+
+    if (!passwordResetToken) {
+      throw Error("No valid token exists for this user.")
+    }
+
+    const isValid = await bcrypt.compare(token, passwordResetToken.token)
+
+    if (!isValid) {
+      throw Error("Invalid or expired password reset token")
+    }
+
+    // Create salt and hash
+    const salt = await bcrypt.genSalt(10)
+    if (!salt) throw Error('Something went wrong with bcrypt')
+
+    const hash = await bcrypt.hash(password, salt)
+
+    // process sent new data
+    await User.updateOne(
+      { _id: userId },
+      { $set: { password: hash } },
+      { new: true }
+    )
+
+    const resetUser = await User.findById({ _id: userId })
+
+    sendEmail(
+      resetUser.email,
+      "Password reset for your Quiz-Blog account is successful!",
+      {
+        name: resetUser.name,
+      },
+      "./template/resetPassword.handlebars")
+
+    await passwordResetToken.deleteOne()
+
+    return true
+
   }
-
-  const isValid = await bcrypt.compare(token, passwordResetToken.token)
-
-  if (!isValid) {
-    throw new Error("Invalid or expired password reset token")
+  catch (err) {
+    console.log(err)
+    res.status(400).json({ msg: err.message })
   }
-
-  // Create salt and hash
-  const salt = await bcrypt.genSalt(10)
-  if (!salt) throw Error('Something went wrong with bcrypt')
-
-  const hash = await bcrypt.hash(password, salt)
-
-  // process sent new data
-  await User.updateOne(
-    { _id: userId },
-    { $set: { password: hash } },
-    { new: true }
-  )
-
-  const resetUser = await User.findById({ _id: userId })
-
-  sendEmail(
-    resetUser.email,
-    "Password reset for your Quiz-Blog account is successful!",
-    {
-      name: resetUser.name,
-    },
-    "./template/resetPassword.handlebars")
-
-  await passwordResetToken.deleteOne()
-
-  return true
 })
 
 

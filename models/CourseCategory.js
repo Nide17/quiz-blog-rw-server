@@ -29,5 +29,10 @@ const CourseCategorySchema = new Schema({
         timestamps: true
     });
 
-//courseCategory: the name of this model
-module.exports = mongoose.model('courseCategory', CourseCategorySchema);
+// //courseCategory: the name of this model
+// module.exports = mongoose.model('courseCategory', CourseCategorySchema);
+//Quiz: the name of this model - using the db connection
+const db = require('../server').db
+const CourseCategory = db.model('courseCategory', CourseCategorySchema)
+
+module.exports = CourseCategory

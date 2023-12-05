@@ -38,5 +38,10 @@ const AdvertSchema = new Schema({
         timestamps: true
     });
 
-//advert: the name of this model
-module.exports = mongoose.model('advert', AdvertSchema);
+// //advert: the name of this model
+// module.exports = mongoose.model('advert', AdvertSchema);
+//Advert: the name of this model - using the db connection
+const db = require('../server').db
+const Advert = db.model('advert', AdvertSchema)
+
+module.exports = Advert

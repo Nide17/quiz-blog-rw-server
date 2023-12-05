@@ -31,5 +31,10 @@ const blogPostViewSchema = new Schema({
         timestamps: true,
     })
 
-//Export
-module.exports = mongoose.model("BlogPostView", blogPostViewSchema)
+// //Export
+// module.exports = mongoose.model("BlogPostView", blogPostViewSchema)
+//BlogPostView: the name of this model - using the db connection
+const db = require('../../server').db
+const BlogPostView = db.model('BlogPostView', blogPostViewSchema)
+
+module.exports = BlogPostView

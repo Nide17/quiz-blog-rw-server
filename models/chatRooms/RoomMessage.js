@@ -28,5 +28,10 @@ const RoomMessageSchema = new Schema({
         timestamps: true
     });
 
-//roomMessage: the name of this model
-module.exports = mongoose.model('roomMessage', RoomMessageSchema);
+// //roomMessage: the name of this model
+// module.exports = mongoose.model('roomMessage', RoomMessageSchema);
+//RoomMessage: the name of this model - using the db connection
+const db = require('../../server').db
+const RoomMessage = db.model('roomMessage', RoomMessageSchema)
+
+module.exports = RoomMessage

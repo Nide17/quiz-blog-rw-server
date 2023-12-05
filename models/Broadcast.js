@@ -24,5 +24,10 @@ const BroadcastSchema = new Schema({
         timestamps: true
     });
 
-//broadcast: the name of this model
-module.exports = mongoose.model('broadcast', BroadcastSchema);
+// //broadcast: the name of this model
+// module.exports = mongoose.model('broadcast', BroadcastSchema);
+//Broadcast: the name of this model - using the db connection
+const db = require('../server').db
+const Broadcast = db.model('broadcast', BroadcastSchema)
+
+module.exports = Broadcast

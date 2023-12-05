@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const PswdResetToken = new Schema({
+const PswdResetTokenSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -20,4 +20,9 @@ const PswdResetToken = new Schema({
     },
 });
 
-module.exports = mongoose.model("Token", PswdResetToken);
+// module.exports = mongoose.model("Token", PswdResetToken);
+//PswdResetToken: the name of this model - using the db connection
+const db = require('../server').db
+const PswdResetToken = db.model('pswdResetToken', PswdResetTokenSchema)
+
+module.exports = PswdResetToken

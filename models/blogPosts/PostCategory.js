@@ -25,5 +25,10 @@ const PostCategorySchema = new Schema({
         timestamps: true
     });
 
-//postCategory: the name of this model
-module.exports = mongoose.model('postCategory', PostCategorySchema);
+// //postCategory: the name of this model
+// module.exports = mongoose.model('postCategory', PostCategorySchema);
+//PostCategory: the name of this model - using the db connection
+const db = require('../../server').db
+const PostCategory = db.model('postCategory', PostCategorySchema)
+
+module.exports = PostCategory

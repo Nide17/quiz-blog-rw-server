@@ -24,5 +24,10 @@ const QuizCommentSchema = new Schema({
         timestamps: true
     });
 
-//quizComment: the name of this model
-module.exports = mongoose.model('quizComment', QuizCommentSchema);
+// //quizComment: the name of this model
+// module.exports = mongoose.model('quizComment', QuizCommentSchema);
+//QuizComment: the name of this model - using the db connection
+const db = require('../server').db
+const QuizComment = db.model('quizComment', QuizCommentSchema)
+
+module.exports = QuizComment

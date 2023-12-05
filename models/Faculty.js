@@ -31,5 +31,10 @@ const FacultySchema = new Schema({
         timestamps: true
     });
 
-//faculty: the name of this model
-module.exports = mongoose.model('faculty', FacultySchema);
+// //faculty: the name of this model
+// module.exports = mongoose.model('faculty', FacultySchema);
+//Faculty: the name of this model - using the db connection
+const db = require('../server').db
+const Faculty = db.model('faculty', FacultySchema)
+
+module.exports = Faculty

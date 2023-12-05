@@ -63,5 +63,10 @@ const QuestionSchema = new Schema({
     }
 });
 
-//Question: the name of this model
-module.exports = mongoose.model('question', QuestionSchema);
+// //Question: the name of this model
+// module.exports = mongoose.model('question', QuestionSchema);
+//Question: the name of this model - using the db connection
+const db = require('../server').db
+const Question = db.model('question', QuestionSchema)
+
+module.exports = Question

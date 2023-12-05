@@ -24,32 +24,46 @@ app.use(express.urlencoded({ extended: true }))
 
 //DB Config
 const dbURI = process.env.MONGO_URI || config.get('mongoURI')
+const dbURIscores = process.env.MONGO_URI_SCORES || config.get('mongoURIscores')
 
-//connect to Mongo
-const connectDB = async () => {
-    await mongoose.
-        connect(dbURI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            // useCreateIndex: true,
-            // useFindAndModify: false
-        })
-        .then(() => console.log('MongoDB connected ...'),
-            err => {
-                console.error(`Connection error: ${err.stack}`)
-                process.exit(1)
-            }
-        )
+//connect to both databases
+function makeNewConnection(uri) {
+    const db = mongoose.createConnection(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+
+    db.on('error', function (error) {
+        console.log(`MongoDB :: connection ${this.name} ${JSON.stringify(error)}`);
+        db.close().catch(() => console.log(`MongoDB :: failed to close connection ${this.name}`));
+    });
+
+    db.on('connected', function () {
+        mongoose.set('debug', function (col, method, query, doc) {
+            console.log(`MongoDB :: ${this.conn.name} ${col}.${method}(${JSON.stringify(query)},${JSON.stringify(doc)})`);
+        });
+        console.log(`MongoDB :: connected ${this.name}`);
+    });
+
+    db.on('disconnected', function () {
+        console.log(`MongoDB :: disconnected ${this.name}`);
+    });
+
+    return db;
 }
 
-connectDB().catch(err => console.error(err))
 
+//connect to both databases
+const db = makeNewConnection(dbURI)
+const dbScores = makeNewConnection(dbURIscores)
+
+// export the connections
+module.exports = { db, dbScores }
 
 // Bring in routes from the api
 //Use routes / All requests going to the api/questions goes the questions variable at the top questions.js file
 app.use('/api/questions', require('./routes/api/questions'))
 app.use('/api/users', require('./routes/api/users'))
-app.use('/api/logs', require('./routes/api/logs'))
 app.use('/api/auth', require('./routes/api/auth'))
 app.use('/api/subscribers', require('./routes/api/subscribers'))
 app.use('/api/categories', require('./routes/api/categories'))
@@ -66,10 +80,6 @@ app.use('/api/notes', require('./routes/api/notes'))
 app.use('/api/faqs', require('./routes/api/faqs'))
 app.use('/api/quizComments', require('./routes/api/quizComments'))
 app.use('/api/questionComments', require('./routes/api/questionComments'))
-// app.use('/api/challenges', require('./routes/api/challenges'))
-app.use('/api/challengeQuestions', require('./routes/api/challenges/challengeQuestions'))
-app.use('/api/challengeQuizzes', require('./routes/api/challenges/challengeQuizzes'))
-app.use('/api/challengeScores', require('./routes/api/challenges/challengeScores'))
 app.use('/api/statistics', require('./routes/api/statistics'))
 app.use('/api/adverts', require('./routes/api/adverts'))
 
@@ -193,4 +203,4 @@ io.on('connection', (socket) => {
 
 server.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
-});
+})

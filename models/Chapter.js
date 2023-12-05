@@ -37,5 +37,10 @@ const ChapterSchema = new Schema({
         timestamps: true
     });
 
-//chapter: the name of this model
-module.exports = mongoose.model('chapter', ChapterSchema);
+// //chapter: the name of this model
+// module.exports = mongoose.model('chapter', ChapterSchema);
+//Chapter: the name of this model - using the db connection
+const db = require('../server').db
+const Chapter = db.model('chapter', ChapterSchema)
+
+module.exports = Chapter

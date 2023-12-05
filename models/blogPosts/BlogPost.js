@@ -48,5 +48,10 @@ blogPostSchema.pre("validate", function (next) {
     next()
 })
 
-//Export
-module.exports = mongoose.model("BlogPost", blogPostSchema)
+// //Export
+// module.exports = mongoose.model("BlogPost", blogPostSchema)
+//BlogPost: the name of this model - using the db connection
+const db = require('../../server').db
+const BlogPost = db.model('BlogPost', blogPostSchema)
+
+module.exports = BlogPost
