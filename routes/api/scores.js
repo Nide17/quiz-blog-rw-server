@@ -50,14 +50,14 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
         })
         .exec() :
 
-      await Score.find().limit(2)
+      await Score.find()
         .sort({ test_date: -1 })
         // populate the quiz from another mongoose connection different from the default one used in the Score model
         .populate({
           path: 'quiz',
           model: Quiz,
           select: 'title slug'
-        }) 
+        })
         // populate the category from another mongoose connection different from the default one used in the Score model
         .populate({
           path: 'category',
@@ -75,10 +75,10 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 
     if (!scores) throw Error('No scores exist')
 
-    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
-    // console.log(archiveUrl)
-    // const archive1Response = await axios.get(archiveUrl)
-    // console.log(archive1Response.data)
+    const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
+    const archive1Response = await axios.get(archiveUrl)
+    console.log("Archive scores: ")
+    console.log(archive1Response.data.length)
 
     if (pageNo > 0) {
       return res.status(200).json({
@@ -288,7 +288,6 @@ router.get('/popular-quizes', async (req, res) => {
       msg: 'Failed to retrieve! ' + err.message
     })
   }
-
 })
 
 // @route   GET /api/scores/popular
@@ -306,17 +305,17 @@ router.get('/monthly-user', async (req, res) => {
         // Note: Score model has a default connection to the dbScores
         $lookup:
         {
-          from: 'quiz', // 'quiz' is the name of the collection in the db 'dbQuizzes
+          from: 'quizzes', // 'quiz' is the name of the collection in the db 'dbQuizzes
           localField: "quiz",
           foreignField: "_id",
           as: "quiz_scores"
         }
       },
       {
-        // Join with quiz collection
+        // Join with users collection
         $lookup:
         {
-          from: 'user', // 'user' is the name of the collection in the db 'dbUsers
+          from: 'users', // 'user' is the name of the collection in the db 'dbUsers
           localField: "taken_by",
           foreignField: "_id",
           as: "taken_by_scores"
@@ -366,28 +365,28 @@ router.get('/monthly-user', async (req, res) => {
 // @route   GET /api/scores/taken-by/:id
 // @desc    Get all scores by taker
 // @access  Private
-router.get('/taken-by/:id', auth, async (req, res) => {
+router.get('/taken-by/:id', async (req, res) => {
 
   let id = req.params.id
   try {
     //Find the scores by id
     const scores = await Score.find({ taken_by: id })
-    // .populate('category quiz taken_by')
-    .populate({
-      path: 'quiz',
-      model: Quiz,
-      select: 'title slug'
-    })
-    .populate({
-      path: 'category',
-      model: Category,
-      select: 'title'
-    })
-    .populate({
-      path: 'taken_by',
-      model: User,
-      select: 'name email'
-    })
+      // .populate('category quiz taken_by')
+      .populate({
+        path: 'quiz',
+        model: Quiz,
+        select: 'title slug'
+      })
+      .populate({
+        path: 'category',
+        model: Category,
+        select: 'title'
+      })
+      .populate({
+        path: 'taken_by',
+        model: User,
+        select: 'name email'
+      })
 
     if (!scores) throw Error('No scores found')
 

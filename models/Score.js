@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 //initialize Mongo schema
 const Schema = mongoose.Schema;
 
-//create a schema object
+//create a schema object: If you use multiple connections, you should make sure you export schemas, not models
+// The alternative to the export model pattern is the export schema pattern.
 const ScoreSchema = new Schema({
     id: {
         type: String,
@@ -82,8 +83,10 @@ const ScoreSchema = new Schema({
     }
 });
 
-//Score: the name of this model - using the dbscores connection
+// Bring in the dbscores connection from server.js - using the dbscores connection - using the Score model name - using the ScoreSchema object - using the dbscores connection - using the Score model name - using the ScoreSchema object - using the dbscores connection - using the Score model name - using
 const dbScores = require('../server').dbScores;
+
+// Create the model - using the ScoreSchema object - using the dbscores connection - using the Score model name - using the ScoreSchema object - using the dbscores connection - using the Score model name - using the ScoreSchema object - using the dbscores connection - using the Score model name - using the Score
 const Score = dbScores.model('score', ScoreSchema);
 
 //export the model
