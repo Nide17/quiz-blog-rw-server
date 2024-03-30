@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const { authRole } = require('../../../middleware/auth')
+const { authRole } = require('../../../middleware/authMiddleware')
 const scheduledReportMessage = require('./scheduledReport')
 
 // BlogPostView Model
@@ -13,34 +13,7 @@ scheduledReportMessage()
 // @desc    Get all blog posts views
 // @access  Public
 router.get('/', async (req, res) => {
-
     console.log('Blog post views route get all blog posts views')
-
-    // // Pagination
-    // const limit = parseInt(req.query.limit);
-    // const skip = parseInt(req.query.skip);
-    // var query = {}
-
-    // query.limit = limit
-    // query.skip = skip
-
-    // try {
-    //     const blogPostsViews = await BlogPostView.find({}, {}, query)
-    //         .maxTimeMS(60000)
-
-    //         //sort blogPostsViews by date
-    //         .sort({ createdAt: -1 })
-    //         .populate('blogPost viewer', 'title name -_id')
-    //         // EXCLUDE THE FOLLOWING FIELDS FROM THE QUERY _id, __v
-    //         .select('-_id -__v -updatedAt')
-
-
-    //     if (!blogPostsViews) throw Error('No blog posts views found')
-
-    //     res.status(200).json(blogPostsViews)
-    // } catch (err) {
-    //     res.status(400).json({ msg: err.message })
-    // }
     res.json({ msg: 'Blog post views route' })
 })
 
@@ -49,18 +22,8 @@ router.get('/', async (req, res) => {
 // @desc    Get all blog post views for today
 // @access  Public
 router.get('/today', async (req, res) => {
-
     console.log('Blog post views route get today blog posts views')
-
-    // Pagination
-    const limit = parseInt(req.query.limit);
-    const skip = parseInt(req.query.skip);
-    var query = {}
-
-    query.limit = limit
-    query.skip = skip
-
-
+    res.json({ msg: 'Not implemented yet' })
 })
 
 
@@ -87,9 +50,9 @@ router.get('/todayAll', async (req, res) => {
         // Get today's date in ISO format with his time set to 00:00:00
         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
-        const blogPostsViews = await BlogPostView.find({ createdAt: { $gte: todayDate } }, {}, query)
+        const blogPostsViews = await BlogPostView
+            .find({ createdAt: { $gte: todayDate } }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 
@@ -106,79 +69,7 @@ router.get('/todayAll', async (req, res) => {
 // @desc    Get recent ten blog post views
 // @access  Public
 router.get('/recentTen', async (req, res) => {
-
     console.log('Blog post views route get recent ten blog posts views')
-
-    // // Aggregate with user to get user name
-    // BlogPostView.aggregate([
-
-    //     // Join with blogPost
-    //     {
-    //         $lookup: {
-    //             from: 'blogposts',
-    //             localField: 'blogPost',
-    //             foreignField: '_id',
-    //             as: 'blogPost'
-    //         }
-    //     },
-    //     {
-    //         // Unwind to get an object instead of an array
-    //         $unwind: "$blogPost"
-    //     },
-
-    //     // CAUSING SLOW PERFORMANCE
-    //     // {
-    //     //     // Join with user
-    //     //     $lookup: {
-    //     //         from: 'users',
-    //     //         localField: 'viewer',
-    //     //         foreignField: '_id',
-    //     //         as: 'user'
-    //     //     }
-    //     // },
-    //     // {
-    //     //     // Unwind to get an object even if no match
-    //     //     $unwind: {
-    //     //         path: '$user',
-    //     //         preserveNullAndEmptyArrays: true
-    //     //     }
-    //     // },
-    //     {
-    //         $sort: { createdAt: -1 }
-    //     },
-    //     {
-    //         $limit: 10
-    //     },
-    //     // Group back to arrays
-    //     {
-    //         $group: {
-    //             _id: '$_id',
-    //             blogPost: { $first: '$blogPost.title' },
-    //             viewer: { $first: '$user.name' },
-    //             device: { $first: '$device' },
-    //             country: { $first: '$country' },
-    //             createdAt: { $first: '$createdAt' }
-    //         }
-    //     },
-    //     // Decide which fields to include
-    //     {
-    //         $project: {
-    //             _id: 0,
-    //             blogPost: 1,
-    //             viewer: 1,
-    //             device: 1,
-    //             country: 1,
-    //             createdAt: 1,
-    //         }
-    //     }
-    // ])
-
-    //     .then(blogPostsViews => {
-    //         res.json(blogPostsViews)
-    //     })
-    //     .catch(err => {
-    //         res.status(400).json({ msg: err.message })
-    //     })
     res.json({ msg: 'Not implemented yet' })
 })
 
@@ -198,9 +89,8 @@ router.get('/blogPost/:id', async (req, res) => {
     query.skip = skip
 
     try {
-        const blogPostsViews = await BlogPostView.find({ blogPost: req.params.id }, {}, query)
-
-            //sort blogPostsViews by date
+        const blogPostsViews = await BlogPostView
+            .find({ blogPost: req.params.id }, {}, query)
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 
@@ -231,7 +121,6 @@ router.get('/user/:id', async (req, res) => {
     try {
         const blogPostsViews = await BlogPostView.find({ user: req.params.id }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 
@@ -263,7 +152,6 @@ router.get('/blogPostCategory/:id', async (req, res) => {
     try {
         const blogPostsViews = await BlogPostView.find({ blogPost: { blogPostCategory: req.params.id } }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
         if (!blogPostsViews) throw Error('No blog posts views found')
@@ -278,83 +166,6 @@ router.get('/blogPostCategory/:id', async (req, res) => {
 // @desc    Get all blog post views by days
 // @access  Public
 router.get('/days', async (req, res) => {
-
-    // Pagination
-    const limit = parseInt(req.query.limit);
-    const skip = parseInt(req.query.skip);
-    var query = {}
-
-    query.limit = limit
-    query.skip = skip
-
-    //     try {
-    //         const blogPostsViews = await BlogPostView.aggregate([
-    //             {
-    //                 $group: {
-    //                     _id: {
-    //                         $dateToString: {
-    //                             format: "%Y-%m-%d",
-    //                             date: "$createdAt"
-    //                         }
-    //                     },
-    //                     count: { $sum: 1 }
-    //                 }
-    //             },
-    //             {
-    //                 $sort: {
-    //                     _id: -1
-    //                 }
-    //             }
-    //         ])
-
-    //         if (!blogPostsViews) throw Error('No blog posts views found')
-
-    //         res.status(200).json(blogPostsViews)
-
-    //     } catch (err) {
-    //         res.status(400).json({ msg: err.message })
-    //     }
-    // })
-
-    // // GET VIEWS REPORT BY DAY NAME 
-    // // @route   GET /api/blogPostsViews/dayName
-    // // @desc    Get all blog post views by day name
-    // // @access  Public
-    // router.get('/dayName', async (req, res) => {
-
-    //     // Pagination
-    //     const limit = parseInt(req.query.limit);
-    //     const skip = parseInt(req.query.skip);
-    //     var query = {}
-
-    //     query.limit = limit
-    //     query.skip = skip
-
-    //     try {
-
-    //         const blogPostsViews = await BlogPostView.aggregate([
-    //             {
-    //                 $group: {
-    //                     _id: {
-    //                         $dayOfWeek: "$createdAt"
-    //                     },
-    //                     count: { $sum: 1 }
-    //                 }
-    //             },
-    //             {
-    //                 $sort: {
-    //                     _id: -1
-    //                 }
-    //             }
-    //         ])
-
-    //         if (!blogPostsViews) throw Error('No blog posts views found')
-
-    //         res.status(200).json(blogPostsViews)
-
-    //     } catch (err) {
-    //         res.status(400).json({ msg: err.message })
-    //     }
     res.json({ msg: 'Not implemented yet' })
 })
 
@@ -364,34 +175,9 @@ router.get('/days', async (req, res) => {
 // @desc    Get all blog post views by hour of day
 // @access  Public
 router.get('/hourOfDay', async (req, res) => {
-
-    // Pagination
-    const limit = parseInt(req.query.limit);
-    const skip = parseInt(req.query.skip);
-    var query = {}
-
-    query.limit = limit
     query.skip = skip
 
     try {
-        // const blogPostsViews = await BlogPostView.aggregate([
-        //     {
-        //         $group: {
-        //             _id: {
-        //                 $hour: "$createdAt"
-        //             },
-        //             count: { $sum: 1 }
-        //         }
-        //     },
-        //     {
-        //         $sort: {
-        //             _id: -1
-        //         }
-        //     }
-        // ])
-
-        // if (!blogPostsViews) throw Error('No blog posts views found')
-        // res.status(200).json(blogPostsViews)
         res.json({ msg: 'Not implemented yet' })
 
     } catch (err) {
@@ -451,15 +237,10 @@ router.get('/thisWeek', async (req, res) => {
     try {
         // ADD 2 HOURS TO GET THE CORRECT DATE IN CAT
         const today = new Date(new Date().getTime() + 2 * 60 * 60 * 1000)
-        const todayDate = today.toISOString().split('T')[0]
-
         const thisMonday = new Date(today.setDate(today.getDate() - today.getDay() + 1)).toISOString().split('T')[0]
-
         const thisSunday = new Date(today.setDate(today.getDate() - today.getDay() + 7)).toISOString().split('T')[0]
-
         const blogPostsViews = await BlogPostView.find({ createdAt: { $gte: thisMonday, $lte: thisSunday } }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 
@@ -487,15 +268,11 @@ router.get('/thisMonth', async (req, res) => {
     try {
         // ADD 2 HOURS TO GET THE CORRECT DATE IN CAT
         const today = new Date(new Date().getTime() + 2 * 60 * 60 * 1000)
-        const todayDate = today.toISOString().split('T')[0]
-
         const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]
-
         const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString().split('T')[0]
 
         const blogPostsViews = await BlogPostView.find({ createdAt: { $gte: thisMonth, $lte: nextMonth } }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 
@@ -523,13 +300,11 @@ router.get('/thisYear', async (req, res) => {
     try {
         // ADD 2 HOURS TO GET THE CORRECT DATE IN CAT
         const today = new Date(new Date().getTime() + 2 * 60 * 60 * 1000)
-        const todayDate = today.toISOString().split('T')[0]
         const thisYear = new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0]
         const nextYear = new Date(today.getFullYear() + 1, 0, 1).toISOString().split('T')[0]
 
         const blogPostsViews = await BlogPostView.find({ createdAt: { $gte: thisYear, $lte: nextYear } }, {}, query)
             .maxTimeMS(60000)
-            //sort blogPostsViews by date
             .sort({ createdAt: -1 })
             .populate('blogPost user')
 

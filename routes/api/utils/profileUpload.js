@@ -1,15 +1,17 @@
 const config = require('config')
-const AWS = require('aws-sdk')
+const { S3 } = require("@aws-sdk/client-s3")
 const path = require('path')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 
-const s3Config = new AWS.S3({
+// AWS S3 Configuration
+const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
     Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket')
 })
 
+// File Filter for multer to check if the file is an image
 const fileFilter = (req, file, callback) => {
 
     const allowedFileTypes = ['image/jpeg', 'image/png', 'image/svg']
@@ -45,6 +47,7 @@ const multerS3Config = multerS3({
     }
 })
 
+// Multer Configuration for uploading image on AWS S3 or locally
 const upload = multer({
     // LOCAL UPLOAD
     // storage: storage,

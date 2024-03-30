@@ -4,7 +4,7 @@ const router = express.Router()
 
 // Download Model
 const Download = require('../../models/Download')
-const { auth, authRole } = require('../../middleware/auth')
+const { auth, authRole } = require('../../middleware/authMiddleware')
 
 // @route GET api/downloads
 // @route Get paginated downloads
@@ -35,7 +35,6 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
         if (!downloads) throw Error('No downloads exist')
 
         if (pageNo > 0) {
-
             return res.status(200).json({
                 totalPages: Math.ceil(totalPages / PAGE_SIZE),
                 downloads
@@ -56,7 +55,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
     try {
-        Download.aggregate([
+        await Download.aggregate([
             {
                 // Join with notes collection
                 $lookup:
@@ -115,18 +114,17 @@ router.get('/notes-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), a
                     users_downloads_name: '$users_downloads.name',
                 }
             }
-        ]).exec(function (err, downloads) {
-            if (err) return err
-            res.json(downloads)
-        }
-        )
+        ]).exec()
+
+            .then(downloads => res.status(200).json(downloads))
+            .catch(err => res.status(400).json({ msg: err.message }))
+
 
     } catch (err) {
         res.status(400).json({
             msg: 'Failed to retrieve! ' + err.message
         })
     }
-
 })
 
 // @route   GET /api/downloads/downloaded-by/:id
@@ -180,8 +178,8 @@ router.post('/', async (req, res) => {
             //         msg: 'Failed! same download already exists!'
             //     })
             // }
-
-            if (recentDownExist) {
+            
+            if (recentDownExist.length > 0) {
                 let downDate = new Date(recentDownExist[0].createdAt)
                 let seconds = Math.round((now - downDate) / 1000)
 
@@ -209,8 +207,7 @@ router.post('/', async (req, res) => {
                 chapter: savedDownload.chapter,
                 course: savedDownload.course,
                 courseCategory: savedDownload.course,
-                downloaded_by: savedDownload.downloaded_by,
-                createdAt: savedDownload.createdAt,
+                downloaded_by: savedDownload.downloaded_by
             })
 
         } catch (err) {
@@ -230,7 +227,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
         if (!download) throw Error('Download is not found!')
 
         // Delete Download
-        const removedDownload = await download.remove()
+        const removedDownload = await Download.deleteOne({ _id: req.params.id })
 
         if (!removedDownload)
             throw Error('Something went wrong while deleting!')

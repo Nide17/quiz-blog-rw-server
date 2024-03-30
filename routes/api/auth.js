@@ -4,55 +4,139 @@ const crypto = require("crypto")
 const jwt = require("jsonwebtoken")
 const config = require('config')
 const router = express.Router()
-const { auth } = require('../../middleware/auth')
+const { auth } = require('../../middleware/authMiddleware')
 const { sendEmail } = require("./emails/sendEmail")
 
 // User Model
 const User = require('../../models/User')
 const PswdResetToken = require('../../models/PswdResetToken')
 
+
+// @route   GET api/auth/user
+// @desc    Get user data to keep logged in user token bcz jwt data are stateless - loadUser
+// @access  Private: Accessed by any logged in user
+router.get('/user', auth, async (req, res) => {
+
+  try {
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .populate('school level faculty', '_id title years')
+
+    if (!user) throw Error('User Does not exist')
+
+    res.json(user)
+
+  } catch (err) {
+    res.status(400).json(err.message)
+  }
+})
+
+// @route   PUT api/auth/logout
+// @desc    Logout user
+// @access  Private: Accessed by any logged in user
+router.put('/logout', auth, async (req, res) => {
+
+  try {
+    // set current token date to null
+    const loggedOutUser = await User.findByIdAndUpdate(
+      { _id: req.body.userId },
+      { $set: { current_token: null } },
+      { new: true }
+    )
+
+    if (!loggedOutUser) throw Error('Something went wrong current token date')
+
+    res.status(200).json({ msg: 'You are logged out!', current_token: loggedOutUser.current_token })
+  } catch (err) {
+    res.status(400).json(err.message)
+  }
+})
+
 // @route   POST api/auth/login
 // @desc    Login user
 // @access  Public
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body
 
-  // Simple validation
+  const { email, password, confirmLogin } = req.body
+
+  // Simple 
   if (!email || !password) {
-    return res.status(400).json({ msg: 'Please fill all fields' })
+    return res.status(400).json({ msg: 'Please fill all fields', id: 'AUTH_ERR', status: 400 })
   }
 
   try {
     // Check for existing user
-    const user = await User.findOne({ email })
-      // Populate only needed fileds
-      .populate('school level faculty', '_id title years')
+    const user = await User.findOne({ email }).populate('school level faculty', '_id title years')
 
     if (!user) throw Error('User Does not exist!')
 
+    // Validate password and email
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) throw Error('Incorrect E-mail or Password!')
 
-    // Sign and generate token
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        role: user.role
-      },
-      process.env.JWT_SECRET || config.get('jwtSecret'),
-      { expiresIn: '2h' }
-    )
+    // Check current_token for validity
+    jwt.verify(user.current_token, process.env.JWT_SECRET || config.get('jwtSecret'), async (err, decoded) => {
 
-    if (!token) throw Error('Couldnt sign in, try again!')
+      if (err) {
+        // Sign and generate token
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
 
-    res.status(200).json({
-      token,
-      user
+        if (!token) throw Error('Could not sign in, try again!')
+
+        // update current token date for this user
+        const updatedUser = await User.findByIdAndUpdate(
+          { _id: user._id },
+          { $set: { current_token: token } },
+          { new: true }
+        )
+
+        if (!updatedUser) throw Error('Something went wrong current token date')
+
+        res.status(200).json({
+          current_token: updatedUser.current_token,
+          user: {
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role
+          }
+        })
+      }
+      else {
+        if (!confirmLogin) {
+          return res.status(401).json({
+            msg: 'You are already logged in from other device or browser.\n do you want to log them out to use here?',
+            id: 'CONFIRM_ERR', status: 401
+          })
+        }
+        else {
+
+          // Sign and generate token
+          const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
+
+          if (!token) throw Error('Could not sign in, try again!')
+          // update current token date for this user
+          const updatedUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { current_token: token } }, { new: true })
+
+          if (!updatedUser) throw Error('Something went wrong current token date')
+          res.status(200).json({
+            current_token: updatedUser.current_token,
+            user: {
+              _id: updatedUser._id,
+              name: updatedUser.name,
+              email: updatedUser.email,
+              role: updatedUser.role
+            },
+          })
+        }
+      }
     })
   } catch (err) {
-    res.status(400).json({ msg: err.message })
+    res.status(400).json(err.message)
   }
 })
+
+
 
 // @route   POST api/auth/register
 // @desc    Register new user
@@ -60,20 +144,15 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body
   const emailTest = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i
-  // const pswdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
   // Simple validation
   if (!name || !email || !password) {
-    return res.status(400).json({ msg: 'Please fill all fields' })
+    return res.status(400).json({ msg: 'Please fill all fields', id: 'AUTH_ERR', status: 400 })
   }
 
   else if (!emailTest.test(email)) {
-    return res.status(400).json({ msg: 'Please provide a valid email!' })
+    return res.status(400).json({ msg: 'Please provide a valid email!', id: 'AUTH_ERR', status: 400 })
   }
-
-  //   else if (!pswdRegex.test(password)) {
-  //     return res.status(400).json({ msg: 'Password should be greater than 7 and having special characters, number, and uppercase and lowercase letters' })
-  // }
 
   try {
     const user = await User.findOne({ email })
@@ -102,28 +181,31 @@ router.post('/register', async (req, res) => {
         name: savedUser.name,
       },
       "./template/welcome.handlebars")
+    console.log('savedUser', savedUser)
 
     // Sign and generate token
-    const token = jwt.sign(
-      {
-        _id: savedUser._id,
-        role: savedUser.role
-      },
-      process.env.JWT_SECRET || config.get('jwtSecret'),
-      { expiresIn: '2h' }
+    const token = jwt.sign({ _id: savedUser._id, role: savedUser.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
+
+    // update current token date for this user
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: savedUser._id },
+      { $set: { current_token: token } },
+      { new: true }
     )
 
+    if (!updatedUser) throw Error('Something went wrong current token date')
+
     res.status(200).json({
-      token,
+      current_token: updatedUser.current_token,
       user: {
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        role: savedUser.role
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
       }
     })
   } catch (err) {
-    res.status(400).json({ msg: err.message })
+    res.status(400).json(err.message)
   }
 })
 
@@ -137,7 +219,7 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const userToReset = await User.findOne({ email })
 
-    if (!userToReset) throw Error('User Does not exist')
+    if (!userToReset) throw Error('User with that email does not exist!')
 
     res.json(userToReset)
 
@@ -147,7 +229,7 @@ router.post('/forgot-password', async (req, res) => {
       await tokn.deleteOne()
     }
 
-    // create a new random token 
+    // create a new random token for resetting password
     let resetToken = crypto.randomBytes(32).toString("hex")
 
     // Create salt and hash
@@ -162,9 +244,9 @@ router.post('/forgot-password', async (req, res) => {
       createdAt: Date.now(),
     }).save()
 
-    const clientURL = process.env.NODE_ENV === 'production' ?
-      'https://quizblog.rw' : 'http://localhost:3000'
-
+    // const clientURL = process.env.NODE_ENV === 'production' ?
+    //   'https://quizblog.rw' : 'http://localhost:3000'
+    const clientURL = req.headers.origin
     const link = `${clientURL}/reset-password?token=${resetToken}&id=${userToReset._id}`
 
     sendEmail(
@@ -177,20 +259,16 @@ router.post('/forgot-password', async (req, res) => {
       "./template/requestResetPassword.handlebars"
     )
 
-    console.log(link)
-
     return link
 
   } catch (err) {
-    console.log(err)
-    res.status(400).json({ msg: err.message })
+    res.status(400).json(err.message)
   }
 })
 
 // @route   POST api/auth/reset-password
 // @desc    
 // @access  
-
 router.post('/reset-password', async (req, res) => {
 
   try {
@@ -200,13 +278,13 @@ router.post('/reset-password', async (req, res) => {
     let passwordResetToken = await PswdResetToken.findOne({ userId })
 
     if (!passwordResetToken) {
-      throw Error("No valid token exists for this user.")
+      throw Error("Invalid or expired link, try resetting again!")
     }
 
     const isValid = await bcrypt.compare(token, passwordResetToken.token)
 
     if (!isValid) {
-      throw Error("Invalid or expired password reset token")
+      throw Error("Invalid link, try resetting again!")
     }
 
     // Create salt and hash
@@ -232,31 +310,13 @@ router.post('/reset-password', async (req, res) => {
       },
       "./template/resetPassword.handlebars")
 
+    // delete the token
     await passwordResetToken.deleteOne()
 
-    return true
-
+    res.json("Password reset successful!")
   }
   catch (err) {
-    console.log(err)
-    res.status(400).json({ msg: err.message })
-  }
-})
-
-
-// @route   GET api/auth/user
-// @desc    Get user data to keep logged in user token bcz jwt data are stateless
-// @access  Private: Accessed by any logged in user
-router.get('/user', auth, async (req, res) => {
-
-  try {
-    const user = await User.findById(req.user._id)
-      .select('-password')
-      .populate('school level faculty', '_id title years')
-    if (!user) throw Error('User Does not exist')
-    res.json(user)
-  } catch (err) {
-    res.status(400).json({ msg: err.message })
+    res.status(400).json(err.message)
   }
 })
 

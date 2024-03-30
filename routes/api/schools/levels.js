@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { auth, authRole } = require('../../../middleware/auth');
+const { auth, authRole } = require('../../../middleware/authMiddleware');
 
 // Level Model
 const Level = require('../../../models/Level');
@@ -130,13 +130,13 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!level) throw Error('Level is not found!')
 
         // Delete faculties belonging to this level
-        const remFaculty = await Faculty.remove({ level: level._id });
+        const remFaculty = await Faculty.deleteMany({ level: req.params.id });
 
         if (!remFaculty)
             throw Error('Something went wrong while deleting!');
 
         // Delete level
-        const removedLevel = await level.remove();
+        const removedLevel = await Level.deleteOne({ _id: req.params.id });
 
         if (!removedLevel)
             throw Error('Something went wrong while deleting!');

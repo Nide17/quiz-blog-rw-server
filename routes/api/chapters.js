@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 
 // Chapter Model
 const Chapter = require('../../models/Chapter')
@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the chapter by id
-         const chapter = await Chapter.findById(id)
+        const chapter = await Chapter.findById(id)
 
         if (!chapter) throw Error('No chapter found!')
 
@@ -142,7 +142,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
             throw Error('Something went wrong while deleting the chapter notes!')
 
         // Delete this chapter
-        const removedChapter = await chapter.remove()
+        const removedChapter = await Chapter.deleteOne({ _id: req.params.id })
 
         if (!removedChapter)
             throw Error('Something went wrong while deleting this chapter!')

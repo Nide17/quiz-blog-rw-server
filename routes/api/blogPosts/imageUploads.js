@@ -1,11 +1,11 @@
 const express = require("express")
+const { S3 } = require("@aws-sdk/client-s3")
 const router = express.Router()
 const config = require('config')
-const AWS = require('aws-sdk')
-const { authRole } = require('../../../middleware/auth')
+const { authRole } = require('../../../middleware/authMiddleware.js')
 const { imgUpload } = require('../utils/imgUpload.js')
 
-const s3Config = new AWS.S3({
+const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
     Bucket: process.env.S3_BUCKET_IMAGEUPLOADS || config.get('S3ImageUploadsBucket')

@@ -6,7 +6,7 @@ const Category = require('../../models/Category')
 const Quiz = require('../../models/Quiz')
 const Question = require('../../models/Question')
 
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 
 // @route   GET /api/categories
 // @desc    Get categories
@@ -15,7 +15,6 @@ router.get('/', async (req, res) => {
 
     try {
         const categories = await Category.find()
-            //sort categories by creation_date
             .sort({ creation_date: -1 })
             .populate('courseCategory')
             .populate('quizes')
@@ -88,6 +87,7 @@ router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         })
 
     } catch (err) {
+        console.log(err)
         res.status(400).json({ msg: err.message })
     }
 })
@@ -120,26 +120,27 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!category) throw Error('Category is not found!')
 
         // Delete questions belonging to this quiz
-        await Question.remove({ category: category._id })
+        await Question.deleteMany({ category: category._id })
 
         // Delete quizes belonging to this category
-        await Quiz.remove({ category: category._id })
+        await Quiz.deleteMany({ category: category._id })
 
         // Delete this category
-        const removedCategory = await category.remove()
+        const result = await Category.deleteOne({ _id: req.params.id })
 
-        if (!removedCategory)
+        if (!result)
             throw Error('Something went wrong while deleting!')
+        console.log(result)
 
-        res.status(200).json(removedCategory)
-        // res.status(200).json({ msg: `${removedCategory.title} is deleted!` })
+        res.status(200).json(result)
 
     } catch (err) {
         res.status(400).json({
-            msg: err.message
+            msg: err.message,
+            id: 'CATEGORIES_ERR',
+            status: 400
         })
     }
-
 })
 
 module.exports = router

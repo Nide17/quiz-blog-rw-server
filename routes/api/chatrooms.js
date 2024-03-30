@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 
 // auth middleware to protect routes
-const { auth } = require('../../middleware/auth')
+const { auth } = require('../../middleware/authMiddleware')
 
 const ChatRoom = require('../../models/chatRooms/ChatRoom')
 const RoomMessage = require('../../models/chatRooms/RoomMessage')

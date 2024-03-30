@@ -1,10 +1,10 @@
 const express = require('express')
+const { S3 } = require("@aws-sdk/client-s3")
 const router = express.Router()
 const config = require('config')
-const AWS = require('aws-sdk')
 const { notesUpload } = require('./utils/notesUpload.js')
 
-const s3Config = new AWS.S3({
+const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
     Bucket: process.env.S3_BUCKET_NOTES || config.get('S3NotesBucket')
@@ -13,12 +13,12 @@ const s3Config = new AWS.S3({
 // Notes Model
 const Notes = require('../../models/Notes')
 const Download = require('../../models/Download')
-const { auth, authRole } = require('../../middleware/auth')
+const { auth, authRole } = require('../../middleware/authMiddleware.js')
 
 // @route   GET /api/notes
 // @desc    Get notes
-// @access  Private
-router.get('/', auth, async (req, res) => {
+// @access  Public
+router.get('/', async (req, res) => {
 
     try {
         const notes = await Notes.find()
@@ -300,7 +300,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
             throw Error('Something went wrong while deleting the downloads!')
 
         // Delete this notes
-        const removedNotes = await notes.remove()
+        const removedNotes = await Notes.deleteOne({ _id: req.params.id })
 
         if (!removedNotes)
             throw Error('Something went wrong while deleting!')

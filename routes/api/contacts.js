@@ -3,7 +3,7 @@ const router = express.Router()
 const { sendEmail } = require("./emails/sendEmail")
 
 // auth middleware to protect routes
-const { auth, authRole } = require('../../middleware/auth')
+const { auth, authRole } = require('../../middleware/authMiddleware')
 
 //Contact Model : use capital letters since it's a model
 const Contact = require('../../models/Contact')
@@ -60,7 +60,7 @@ router.get('/sent-by/:userEmail', auth, async (req, res) => {
   try {
     //Find the contacts by userEmail
     const contacts = await Contact.find({ email: userEmail }).sort({ contact_date: -1 })
-    
+
     if (!contacts) throw Error('No contacts found')
 
     res.status(200).json(contacts)
@@ -127,6 +127,7 @@ router.get('/:id', auth, (req, res) => {
 
     //return a promise
     .then(contact => res.json(contact))
+    
     // if id not exist or if error
     .catch(err => res.status(404).json({ success: false }))
 })
@@ -172,15 +173,22 @@ router.put('/:id', auth, async (req, res) => {
 // @route DELETE api/contacts
 // @route delete a Contact
 // @route Private: Accessed by authorization
-router.delete('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
-  //Find the Contact to delete by id first
-  Contact.findById(req.params.id)
+  try {
+    const contact = await Contact.findById(req.params.id)
 
-    //returns promise 
-    .then(contact => contact.remove().then(() => res.json({ success: true })))
-    // if id not exist or if error
-    .catch(err => res.status(404).json({ success: false }))
+    if (!contact) throw Error('No contact found')
+
+    const removed = await Contact.deleteOne({ _id: req.params.id })
+
+    if (!removed) throw Error('Something went wrong while trying to delete the contact')
+
+    res.status(200).json({ success: true })
+
+  } catch (err) {
+    res.status(400).json({ msg: err.message, success: false })
+  }
 })
 
 module.exports = router

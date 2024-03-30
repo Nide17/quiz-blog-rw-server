@@ -75,11 +75,70 @@ const getDailyReport = async () => {
                     count: 1
                 }
             }
-        ], function (err, result) {
-            if (err) {
-                console.error(err.message)
-            } else {
+        ],
 
+            // function (err, result) {
+            //     if (err) {
+            //         console.error(err.message)
+            //     } else {
+
+            //         // TOTAL VIEWS COUNT
+            //         let totalViewsCount = 0
+            //         result.forEach((blogPost) => {
+            //             totalViewsCount += blogPost.count
+            //         })
+
+            //         // UNIQUE COUNTRIES AND ITS COUNT
+            //         const uniqueCountries = []
+            //         const uniqueCountriesCount = []
+            //         result.forEach((blogPost) => {
+            //             blogPost.countries.forEach((country) => {
+            //                 if (!uniqueCountries.includes(country.country)) {
+            //                     uniqueCountries.push(country.country)
+            //                     uniqueCountriesCount.push({ country: country.country, count: country.count })
+            //                 } else {
+            //                     uniqueCountriesCount.forEach((uniqueCountry) => {
+            //                         if (uniqueCountry.country === country.country) {
+            //                             uniqueCountry.count += country.count
+            //                         }
+            //                     })
+            //                 }
+            //             })
+            //         })
+
+            //         // UNIQUE DEVICES AND ITS COUNT
+            //         const uniqueDevices = []
+            //         const uniqueDevicesCount = []
+            //         result.forEach((blogPost) => {
+            //             blogPost.countries.forEach((country) => {
+            //                 if (!uniqueDevices.includes(country.device)) {
+            //                     uniqueDevices.push(country.device)
+            //                     uniqueDevicesCount.push({ device: country.device, count: country.count })
+            //                 } else {
+            //                     uniqueDevicesCount.forEach((uniqueDevice) => {
+            //                         if (uniqueDevice.device === country.device) {
+            //                             uniqueDevice.count += country.count
+            //                         }
+            //                     })
+            //                 }
+            //             })
+            //         })
+
+            //         // EACH BLOG POST WITH ITS VIEW COUNT
+            //         const blogPostsViews = []
+            //         result.forEach((blogPost) => {
+            //             blogPostsViews.push({ blogPost: blogPost.blogPost, count: blogPost.count })
+            //         })
+
+            //         // TOTAL VIEWS COUNT
+            //         const totalViews = { totalViewsCount: totalViewsCount, uniqueCountriesCount: uniqueCountriesCount, uniqueDevicesCount: uniqueDevicesCount, blogPostsViews: blogPostsViews }
+
+            //         // SEND THE REPORT
+            //         report = totalViews
+            //     }
+            // }
+        )
+            .then(result => {
                 // TOTAL VIEWS COUNT
                 let totalViewsCount = 0
                 result.forEach((blogPost) => {
@@ -133,8 +192,11 @@ const getDailyReport = async () => {
 
                 // SEND THE REPORT
                 report = totalViews
-            }
-        })
+            })
+            .catch(err => {
+                console.error(err.message)
+                report = null
+            })
 
     } catch (err) {
         console.error(err.message)

@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const { auth, authRole } = require('../../../middleware/auth')
+const { authRole } = require('../../../middleware/authMiddleware')
 
 // PostCategory Model
 const PostCategory = require('../../../models/blogPosts/PostCategory')

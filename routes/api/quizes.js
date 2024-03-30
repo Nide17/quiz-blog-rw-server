@@ -7,7 +7,7 @@ const Question = require('../../models/Question')
 const Category = require('../../models/Category')
 const SubscribedUser = require('../../models/SubscribedUser')
 
-const { auth, authRole } = require('../../middleware/auth')
+const { auth, authRole } = require('../../middleware/authMiddleware')
 const { sendEmail } = require("./emails/sendEmail")
 
 // Help to randomize
@@ -108,10 +108,6 @@ router.get('/paginated', authRole(['Creator', 'Admin', 'SuperAdmin']), async (re
     }
 })
 
-// @route GET api/quizes/creator
-// @route Get quizes paginated
-// @route Private: accessed by authorized user
-
 // @route   GET /api/quizes/:quizSlug
 // @desc    Get one quiz
 // @access  Public
@@ -141,9 +137,12 @@ router.get('/category/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the quizes by id
-        await Quiz.find({ category: id }, (err, quizes) => {
-            res.status(200).json(quizes)
-        })
+        const quizes = await Quiz.find({ category: id })
+            .populate('category questions created_by')
+
+        if (!quizes) throw Error('No quizes found')
+
+        res.status(200).json(quizes)
 
     } catch (err) {
         res.status(400).json({
@@ -344,10 +343,10 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
         )
 
         // Delete questions belonging to this quiz
-        await Question.remove({ quiz: quiz._id })
+        await Question.deleteMany({ quiz: quiz._id })
 
         // Delete quiz
-        const removedQuiz = await quiz.remove()
+        const removedQuiz = await Quiz.deleteOne({ _id: req.params.id })
 
         if (!removedQuiz)
             throw Error('Something went wrong while deleting!')

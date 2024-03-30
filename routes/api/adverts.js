@@ -1,11 +1,8 @@
 const express = require('express')
-const config = require('config')
 const router = express.Router()
-const AWS = require('aws-sdk')
-
 
 // auth middleware to protect routes
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware.js')
 const { advertUpload } = require('./utils/advertUpload.js')
 const Advert = require('../../models/Advert')
 
@@ -39,7 +36,6 @@ router.get('/active', async (req, res) => {
         res.status(400).json({ msg: err.message })
     }
 })
-
 
 // @route GET api/adverts/:id
 // @route GET one Advert
@@ -202,6 +198,7 @@ router.put('/delete-video/:id', authRole(['Admin', 'SuperAdmin']), async (req, r
         })
     }
 })
+
 // @route DELETE api/adverts
 // @route delete a advert
 // @route Private: Accessed by admin authorization
@@ -212,7 +209,7 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!advert) throw Error('advert is not found!')
 
         // Delete Advert
-        const removedAdvert = await Advert.remove()
+        const removedAdvert = await Advert.deleteOne({ _id: req.params.id })
 
         if (!removedAdvert)
             throw Error('Something went wrong while deleting!')

@@ -6,9 +6,8 @@ const User = require('../../models/User')
 const Download = require('../../models/Download')
 const Score = require('../../models/Score')
 
-
 // MIDDLEWARE
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 
 // @route   GET api/statistics/users50
 // @desc    Get 50 users
@@ -317,7 +316,7 @@ router.get('/usersWithAbout', authRole(['Admin', 'SuperAdmin']), async (req, res
 // @route Group 100 users with most attempts to quizzes i.e. most scores count
 // @route Private: accessed by authorization
 router.get('/top100Quizzing', async (req, res) => {
-    Score.aggregate([
+    await Score.aggregate([
         {
             // Join with users collection
             $lookup: {
@@ -367,7 +366,7 @@ router.get('/top100Quizzing', async (req, res) => {
 // @route Group 100 users with most downloaded files
 // @route Private: accessed by authorization
 router.get('/top100Downloaders', async (req, res) => {
-    Download.aggregate([
+    await Download.aggregate([
         {
             // Join with notes collection
             $lookup: {
@@ -414,17 +413,20 @@ router.get('/top100Downloaders', async (req, res) => {
                 downloads: 1
             }
         }
-    ]).exec(function (err, downloadCounts) {
-        if (err) return err
-        res.json(downloadCounts)
-    })
+    ]).exec()
+        .then(downloadsCount => {
+            res.json(downloadsCount)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 // @route GET api/statistics
 // @route Group top 20 quizzes with most attempts
 // @route Private: accessed by authorization
 router.get('/top20Quizzes', async (req, res) => {
-    Score.aggregate([
+    await Score.aggregate([
         {
             // Join with quiz collection
             $lookup: {
@@ -488,17 +490,20 @@ router.get('/top20Quizzes', async (req, res) => {
                 created_by: 1
             }
         }
-    ]).exec(function (err, quizStatistics) {
-        if (err) return err;
-        res.json(quizStatistics);
-    });
+    ]).exec()
+        .then(quizStatistics => {
+            res.json(quizStatistics)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 // @route GET api/statistics
 // @route Group all quizzes with most attempts
 // @route Private: accessed by authorization
 router.get('/allQuizzesAttempts', async (req, res) => {
-    Score.aggregate([
+    await Score.aggregate([
         {
             // Join with quiz collection
             $lookup: {
@@ -558,10 +563,13 @@ router.get('/allQuizzesAttempts', async (req, res) => {
                 created_by: 1
             }
         }
-    ]).exec(function (err, quizStatistics) {
-        if (err) return err;
-        res.json(quizStatistics);
-    });
+    ]).exec()
+        .then(quizStatistics => {
+            res.json(quizStatistics)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 
@@ -569,7 +577,7 @@ router.get('/allQuizzesAttempts', async (req, res) => {
 // @route Group notes with most downloads
 // @route Private: accessed by authorization
 router.get('/top20Downloads', async (req, res) => {
-    Download.aggregate([
+    await Download.aggregate([
         {
             // Join with notes collection
             $lookup: {
@@ -644,17 +652,20 @@ router.get('/top20Downloads', async (req, res) => {
                 downloads: 1
             }
         }
-    ]).exec(function (err, notesStats) {
-        if (err) return err
-        res.json(notesStats)
-    })
+    ]).exec()
+        .then(notesStats => {
+            res.json(notesStats)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 // @route GET api/statistics
 // @route Group notes with most downloads
 // @route Private: accessed by authorization
 router.get('/allDownloads', async (req, res) => {
-    Download.aggregate([
+    await Download.aggregate([
         {
             // Join with notes collection
             $lookup: {
@@ -725,10 +736,13 @@ router.get('/allDownloads', async (req, res) => {
                 downloads: 1
             }
         }
-    ]).exec(function (err, notesStats) {
-        if (err) return err
-        res.json(notesStats)
-    })
+    ]).exec()
+        .then(notesStats => {
+            res.json(notesStats)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 
@@ -736,7 +750,7 @@ router.get('/allDownloads', async (req, res) => {
 // @desc    Get each quiz category with number of quiz attempts
 // @access Private: Accessed by ['Admin', 'SuperAdmin']
 router.get('/quizCategoriesAttempts', async (req, res) => {
-    Score.aggregate([
+    await Score.aggregate([
         {
             // Join with quiz collection
             $lookup: {
@@ -782,17 +796,20 @@ router.get('/quizCategoriesAttempts', async (req, res) => {
                 quizzes: 1
             }
         }
-    ]).exec(function (err, categoriesStats) {
-        if (err) return err
-        res.json(categoriesStats)
-    })
+    ]).exec()
+        .then(categoriesStats => {
+            res.json(categoriesStats)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 // @route   GET api/notesCategoriesDownloads
 // @desc    Get each notes category with number of notes downloads
 // @access Private: Accessed by ['Admin', 'SuperAdmin']
 router.get('/notesCategoriesDownloads', async (req, res) => {
-    Download.aggregate([
+    await Download.aggregate([
         {
             // Join with notes collection
             $lookup: {
@@ -835,17 +852,20 @@ router.get('/notesCategoriesDownloads', async (req, res) => {
                 downloads: 1
             }
         }
-    ]).exec(function (err, categoriesStats) {
-        if (err) return err
-        res.json(categoriesStats)
-    })
+    ]).exec()
+        .then(categoriesStats => {
+            res.json(categoriesStats)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 // @route   GET api/statistics
 // @desc    Get the count of users registered for each day using register_date
 // @access Private: Accessed by ['Admin', 'SuperAdmin']
 router.get('/dailyUserRegistration', async (req, res) => {
-    User.aggregate([
+    await User.aggregate([
         {
             // make register_date only date without hours, minutes, seconds
             $project: {
@@ -855,7 +875,7 @@ router.get('/dailyUserRegistration', async (req, res) => {
                 //         date: "$register_date"
                 //     }
                 // },
-                
+
                 // use CAT timezone instead of UTC timezone to get the correct date
                 register_date_CAT: {
                     $dateToString: {
@@ -885,15 +905,18 @@ router.get('/dailyUserRegistration', async (req, res) => {
                 users: 1
             }
         }
-    ]).exec(function (err, usersStats) {
-        if (err) return err
-        // make a total of users
-        let total = 0
-        usersStats.forEach(user => {
-            total += user.users
+    ]).exec()
+        .then(usersStats => {
+            // make a total of users
+            let total = 0
+            usersStats.forEach(user => {
+                total += user.users
+            })
+            res.json({ usersStats, total })
         })
-        res.json({ usersStats, total })
-    })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 })
 
 
@@ -901,7 +924,7 @@ router.get('/dailyUserRegistration', async (req, res) => {
 // @desc    Get the each school user statistics
 // @access Private: Accessed by ['Admin', 'SuperAdmin']
 router.get('/schoolUsers', async (req, res) => {
-    User.aggregate([
+    await User.aggregate([
         // Project the fields you want to keep
         {
             $project: {
@@ -956,10 +979,13 @@ router.get('/schoolUsers', async (req, res) => {
         {
             $sort: { _id: 1 }
         }
-    ]).exec(function (err, users) {
-        if (err) return err;
-        res.json(users);
-    });
+    ]).exec()
+        .then(users => {
+            res.json(users)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 });
 
 
@@ -967,7 +993,7 @@ router.get('/schoolUsers', async (req, res) => {
 // @desc    Get the each school user count
 // @access Private: Accessed by ['Admin', 'SuperAdmin']
 router.get('/schoolUsersCount', async (req, res) => {
-    User.aggregate([
+    await User.aggregate([
         // Project the fields you want to keep
         {
             $project: {
@@ -1008,10 +1034,13 @@ router.get('/schoolUsersCount', async (req, res) => {
         {
             $sort: { _id: 1 }
         }
-    ]).exec(function (err, users) {
-        if (err) return err;
-        res.json(users);
-    });
+    ]).exec()
+        .then(users => {
+            res.json(users)
+        })
+        .catch(err => {
+            res.status(400).json({ msg: err.message })
+        })
 });
 
 

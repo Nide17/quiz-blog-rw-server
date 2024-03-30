@@ -58,6 +58,9 @@ const UserSchema = new Schema({
   },
   about: {
     type: String
+  },
+  current_token: {
+    type: String
   }
 });
 

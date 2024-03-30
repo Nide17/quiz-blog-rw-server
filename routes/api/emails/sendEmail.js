@@ -14,8 +14,8 @@ const sendEmail = async (email, subject, payload, template) => {
       secure: true,
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER || config.get('EMAIL_USER'),
+        pass: process.env.EMAIL_PASS || config.get('EMAIL_PASS')
       },
       maxConnections: 20,
       maxMessages: Infinity

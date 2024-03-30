@@ -1,10 +1,9 @@
-// CRUD for users
 const express = require("express")
+const { S3 } = require("@aws-sdk/client-s3")
 const config = require('config')
 const router = express.Router()
-const AWS = require('aws-sdk')
 
-const s3Config = new AWS.S3({
+const s3Config = new S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
   Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket')
@@ -13,51 +12,7 @@ const s3Config = new AWS.S3({
 // User Model
 const User = require('../../models/User')
 const { profileUpload } = require('./utils/profileUpload.js')
-const { auth, authRole } = require('../../middleware/auth')
-
-// @route   GET api/users
-// @desc    Get all users
-// @access Private: Accessed by admin only
-
-/*
-router.get('/', async (req, res) => {
-
-  // Pagination
-  const totalPages = await User.countDocuments({})
-  var PAGE_SIZE = 8
-  var pageNo = parseInt(req.query.pageNo || "0")
-  var query = {}
-
-  query.limit = PAGE_SIZE
-  query.skip = PAGE_SIZE * (pageNo - 1)
-
-  try {
-
-    const users = pageNo > 0 ?
-      await User.find({}, {}, query)
-
-        //sort users by creation_date
-        .sort({ register_date: -1 }) :
-
-      await User.find()
-
-        //sort users by creation_date
-        .sort({ register_date: -1 })
-
-    if (!users) throw Error('No users exist')
-
-    res.status(200).json({
-      totalPages: Math.ceil(totalPages / PAGE_SIZE),
-      users
-    })
-
-  } catch (err) {
-    res.status(400).json({ msg: err.message })
-  }
-})
-
-*/
-
+const { auth, authRole } = require('../../middleware/authMiddleware.js')
 
 // @route   GET api/users
 // @desc    Get all users
@@ -77,7 +32,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     res.status(200).json(users)
 
   } catch (err) {
-    res.status(400).json({ msg: err.message })
+    res.status(400).json({ msg: err.message, id: 'USER_ERR' })
   }
 })
 
@@ -97,7 +52,7 @@ router.get('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   } catch (err) {
     res.status(400).json({
-      msg: 'Failed to retrieve! ' + err.message
+      msg: 'Failed to retrieve! ' + err.message, id: 'USER_ERR'
     })
   }
 
@@ -115,7 +70,7 @@ router.put('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   } catch (error) {
     res.status(400).json({
-      msg: 'Failed to update! ' + error.message
+      msg: 'Failed to update! ' + error.message, id: 'USER_ERR'
     })
   }
 })
@@ -133,7 +88,7 @@ router.put('/user-details/:id', auth, async (req, res) => {
 
   } catch (error) {
     res.status(400).json({
-      msg: 'Failed to update! ' + error.message
+      msg: 'Failed to update! ' + error.message, id: 'USER_ERR'
     })
   }
 })
@@ -183,15 +138,11 @@ router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async
       const updatedUserProfile = await User
         .findByIdAndUpdate({ _id: req.params.id }, { image: img_file.location }, { new: true })
 
-        // FOR LOCAL UPLOAD
-      // const updatedUserProfile = await User
-      //   .findByIdAndUpdate({ _id: req.params.id }, { image: img_file.location ? img_file.location : img_file.path }, { new: true })
-
       res.status(200).json(updatedUserProfile)
 
 
     } catch (err) {
-      res.status(400).json({ msg: err.message })
+      res.status(400).json({ msg: err.message, id: 'USER_ERR' })
     }
   }
 })
@@ -206,7 +157,7 @@ router.delete('/:id', authRole(['SuperAdmin']), async (req, res) => {
     const user = await User.findById(req.params.id)
     if (!user) throw Error('User is not found!')
 
-    const removedUser = await user.remove()
+    const removedUser = await User.deleteOne({ _id: req.params.id })
 
     if (!removedUser)
       throw Error('Something went wrong while deleting!')
@@ -215,7 +166,7 @@ router.delete('/:id', authRole(['SuperAdmin']), async (req, res) => {
 
   } catch (err) {
     res.status(400).json({
-      success: false,
+      id: 'USER_ERR',
       msg: err.message
     })
   }

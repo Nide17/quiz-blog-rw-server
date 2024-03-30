@@ -1,9 +1,9 @@
 const express = require("express")
 const router = express.Router()
-const {sendEmail} = require("./emails/sendEmail")
+const { sendEmail } = require("./emails/sendEmail")
 
 // auth middleware to protect routes
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 
 const User = require('../../models/User')
 const Broadcast = require('../../models/Broadcast')
@@ -129,7 +129,7 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!broadcast) throw Error('Broadcast is not found!')
 
         // Delete broadcast
-        const removedBroadcast = await broadcast.remove()
+        const removedBroadcast = await Broadcast.deleteOne({ _id: req.params.id })
 
         if (!removedBroadcast)
             throw Error('Something went wrong while deleting!')

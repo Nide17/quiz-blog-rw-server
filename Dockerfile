@@ -6,14 +6,14 @@ WORKDIR /app
 
 # install dependencies
 COPY package*.json ./
-COPY yarn.lock ./
-RUN yarn install
+COPY package-lock.json ./
+RUN npm install
 
 # Copy source files
 COPY . ./
 
 # Start the app
-RUN yarn start
+RUN npm start
 
 # The port that this container will listen to
 EXPOSE 3000

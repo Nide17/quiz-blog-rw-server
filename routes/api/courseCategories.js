@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { auth, authRole } = require('../../middleware/auth');
+const { auth, authRole } = require('../../middleware/authMiddleware');
 
 // CourseCategory Model
 const CourseCategory = require('../../models/CourseCategory');

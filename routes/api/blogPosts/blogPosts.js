@@ -1,11 +1,11 @@
 const express = require("express")
+const { S3 } = require("@aws-sdk/client-s3")
 const router = express.Router()
 const config = require('config')
-const AWS = require('aws-sdk')
-const { authRole } = require('../../../middleware/auth')
+const { authRole } = require('../../../middleware/authMiddleware.js')
 const { blogPostUpload } = require('../utils/blogPostUpload.js')
 
-const s3Config = new AWS.S3({
+const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
     Bucket: process.env.S3_BUCKET_BLOGPOSTS || config.get('S3BlogPostsBucket')
@@ -37,7 +37,9 @@ router.get('/', async (req, res) => {
         if (!blogPosts) throw Error('No blog posts found')
 
         res.status(200).json(blogPosts)
+
     } catch (err) {
+        console.log(err)
         res.status(400).json({ msg: err.message })
     }
 })
@@ -48,7 +50,7 @@ router.get('/', async (req, res) => {
 router.get('/:bPSlug', (req, res) => {
 
     //Find the blogpost by bPSlug
-    BlogPost.findOne({slug: req.params.bPSlug})
+    BlogPost.findOne({ slug: req.params.bPSlug })
         .populate('postCategory creator')
 
         //return a promise
@@ -149,7 +151,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
             }
 
             try {
-                await s3Config.deleteObject(params, (err, data) => {
+                s3Config.deleteObject(params, (err, data) => {
                     if (err) {
                         res.status(400).json({ msg: err.message })
                         console.log(err, err.stack) // an error occurred
@@ -164,7 +166,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
             catch (err) {
                 console.log('ERROR in file Deleting : ' + JSON.stringify(err))
                 res.status(400).json({
-                    msg: 'Failed to delete! ' + error.message,
+                    msg: 'Failed to delete! ' + err.message,
                     success: false
                 })
             }

@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 
 // Course Model
 const Course = require('../../models/Course')
@@ -147,12 +147,12 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
             throw Error('Something went wrong while deleting the course notes!')
 
         // Delete this course
-        const removedCourse = await course.remove()
+        const removedCourse = await Course.deleteOne({ _id: req.params.id })
 
         if (!removedCourse)
             throw Error('Something went wrong while deleting!')
         res.status(200).json({ msg: `Deleted!` })
-        
+
     } catch (err) {
         res.status(400).json({
             success: false

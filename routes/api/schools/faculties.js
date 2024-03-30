@@ -1,11 +1,11 @@
 const express = require("express")
 const router = express.Router()
-const { auth, authRole } = require('../../../middleware/auth')
+const { auth, authRole } = require('../../../middleware/authMiddleware')
 
 // Faculty Model
 const Faculty = require('../../../models/Faculty')
 
-// @route   GET /api/schoolsapi/faculties
+// @route   GET /api/faculties
 // @desc    Get faculties
 // @access  Public
 router.get('/', async (req, res) => {
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
     }
 })
 
-// @route   GET /api/schoolsapi/faculties/:id
+// @route   GET /api/faculties/:id
 // @desc    Get one faculty
 // @access Private: accessed by logged in user
 router.get('/:id', async (req, res) => {
@@ -32,7 +32,7 @@ router.get('/:id', async (req, res) => {
     let id = req.params.id
     try {
         //Find the faculty by id
-const faculty = await Faculty.findById(id)
+        const faculty = await Faculty.findById(id)
 
         if (!faculty) throw Error('No faculty found!')
 
@@ -45,7 +45,7 @@ const faculty = await Faculty.findById(id)
     }
 })
 
-// @route   GET /api/schoolsapi/faculties/level/:id
+// @route   GET /api/faculties/level/:id
 // @desc    Get all faculties by level id
 // @access  Needs to private
 router.get('/level/:id', async (req, res) => {
@@ -67,7 +67,7 @@ router.get('/level/:id', async (req, res) => {
 
 })
 
-// @route   POST /api/schoolsapi/faculties
+// @route   POST /api/faculties
 // @desc    Create a faculty
 // @access Private: Accessed by admins only
 router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
@@ -134,7 +134,7 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!faculty) throw Error('Faculty is not found!')
 
         // Delete faculty
-        const removedFaculty = await faculty.remove()
+        const removedFaculty = await Faculty.deleteOne({ _id: req.params.id })
 
         if (!removedFaculty)
             throw Error('Something went wrong while deleting!')

@@ -5,7 +5,7 @@ const config = require('config')
 const axios = require('axios')
 
 // auth middleware to protect routes
-const { auth, authRole } = require('../../middleware/auth')
+const { auth, authRole } = require('../../middleware/authMiddleware')
 
 //Score Model : use capital letters since it's a model
 const Score = require('../../models/Score')
@@ -77,8 +77,6 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 
     const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
     const archive1Response = await axios.get(archiveUrl)
-    console.log("Archive scores: ")
-    console.log(archive1Response.data.length)
 
     if (pageNo > 0) {
       return res.status(200).json({
@@ -91,6 +89,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     }
 
   } catch (err) {
+    console.log(err)
     return res.status(400).json({ msg: err.message })
   }
 })
@@ -101,7 +100,7 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 router.get('/quiz-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
   try {
-    Score.aggregate([
+    await Score.aggregate([
       {
         // Join with quiz collection
         $lookup:
@@ -150,11 +149,9 @@ router.get('/quiz-creator/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), as
           users_scores_name: '$users_scores.name',
         }
       }
-    ]).exec(function (err, scores) {
-      if (err) return err
-      res.json(scores)
-    }
-    )
+    ]).exec()
+      .then(scores => res.json(scores))
+      .catch(err => res.status(400).json({ success: false }))
 
   } catch (err) {
     res.status(400).json({
@@ -278,10 +275,9 @@ router.get('/popular-quizes', async (req, res) => {
       },
       // Fourth Stage: only top 3
       { $limit: 3 }
-    ]).exec(function (err, scores) {
-      if (err) return err
-      res.json(scores)
-    })
+    ]).exec()
+      .then(scores => res.json(scores))
+      .catch(err => res.status(400).json({ msg: err.message }))
 
   } catch (err) {
     res.status(400).json({
@@ -290,7 +286,7 @@ router.get('/popular-quizes', async (req, res) => {
   }
 })
 
-// @route   GET /api/scores/popular
+// @route   GET /api/scores/monthly-user
 // @desc    Get popular users by today's scores
 // @access  Public
 router.get('/monthly-user', async (req, res) => {
@@ -349,10 +345,9 @@ router.get('/monthly-user', async (req, res) => {
       },
       // Six Stage: only top 3
       { $limit: 1 }
-    ]).exec(function (err, scores) {
-      if (err) return err
-      res.json(scores[0])
-    })
+    ]).exec()
+      .then(scores => res.json(scores[0]))
+      .catch(err => res.status(400).json({ msg: err.message }))
 
   } catch (err) {
     res.status(400).json({
@@ -391,7 +386,6 @@ router.get('/taken-by/:id', async (req, res) => {
     if (!scores) throw Error('No scores found')
 
     const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023/taken-by/${id}`
-
     const archive1Response = await axios.get(archiveUrl)
 
     // APPEND ARCHIVE SCORES
@@ -493,7 +487,7 @@ router.post('/', auth, async (req, res) => {
       }
 
     } catch (err) {
-      console.log(err.message)
+      // console.log(err.message)
       res.status(400).json({ msg: 'Failed to save score! ' + err.message })
     }
   }
@@ -502,15 +496,87 @@ router.post('/', auth, async (req, res) => {
 // @route DELETE api/scores
 // @route delete a Score
 // @route Private: Accessed by admin only
-router.delete('/:id', authRole(['Admin', 'SuperAdmin']), (req, res) => {
+router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
-  //Find the Score to delete by id first
-  Score.findById(req.params.id)
+  try {
+    //Find the Score to delete by id first
+    const score = await Score.findOne({ _id: req.params.id })
 
-    //returns promise 
-    .then(score => score.remove().then(() => res.json({ success: true })))
-    // if id not exist or if error
-    .catch(err => res.status(404).json({ success: false }))
+    if (!score) throw Error('No score found!')
+
+    // Delete the Score
+    const removedScore = await Score.deleteOne({ _id: req.params.id })
+
+    if (!removedScore) throw Error('Something went wrong while deleting!')
+
+    res.status(200).json(removedScore)
+  }
+
+  catch (err) {
+    console.log(err)
+    res.status(400).json({
+      msg: 'Failed to delete! ' + err.message,
+      success: false
+    })
+  }
+})
+
+// /api/scores/feedback
+// @route POST api/scores/feedback
+// @route Save feedback
+// @route Private: accessed by logged in user
+router.post('/feedback', auth, async (req, res) => {
+
+  const { rating, comment, quiz, score } = req.body
+
+  // Simple validation
+  if (!rating || !comment || !quiz || !score) {
+    const missing = !id ? 'Error' : !rating ? 'No rating' : !quiz ? 'No quiz' : !score ? 'No score' : 'Wrong'
+    return res.status(400).json({ msg: missing + '!' })
+  }
+
+  else {
+    try {
+      const existingScore = await Score.find({ id: id })
+
+      if (existingScore.length === 0) {
+        return res.status(400).json({
+          msg: 'Score not found!'
+        })
+      }
+
+      else {
+        const newScore = new Score({
+          id,
+          rating,
+          comment,
+          quiz,
+          score
+        })
+
+        const savedScore = await newScore.save()
+
+        if (!savedScore) {
+          throw Error('Something went wrong during creation!')
+        }
+
+        else {
+          res.status(200).json({
+            _id: savedScore._id,
+            id: savedScore.id,
+            rating: savedScore.rating,
+            comment: savedScore.comment,
+            quiz: savedScore.quiz,
+            score: savedScore.score
+          })
+        }
+      }
+
+    } catch (err) {
+      res.status(400).json({ msg: 'Failed to save feedback! ' + err.message })
+    }
+  }
+
 })
 
 module.exports = router

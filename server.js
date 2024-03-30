@@ -7,10 +7,14 @@ const compression = require('compression')
 var expressStaticGzip = require("express-static-gzip")
 const cors = require('cors')
 const http = require('http')
-const { Server } = require('socket.io')
+const socketio = require('./utils/socket')
 
 // Initialize express into the app variable
 const app = express()
+
+// SOCKET.IO CONNECTION INITIALIZATION
+const server = http.createServer(app)
+socketio.initialize(server);
 
 // compress all responses
 app.use(compression())
@@ -25,13 +29,11 @@ app.use(express.urlencoded({ extended: true }))
 //DB Config
 const dbURI = process.env.MONGO_URI || config.get('mongoURI')
 const dbURIscores = process.env.MONGO_URI_SCORES || config.get('mongoURIscores')
+const dbURIfeedbacks = process.env.MONGO_URI_FEEDBACKS || config.get('mongoURIfeedbacks')
 
-//connect to both databases
+//connect to databases
 function makeNewConnection(uri) {
-    const db = mongoose.createConnection(uri, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const db = mongoose.createConnection(uri);
 
     db.on('error', function (error) {
         console.log(`MongoDB :: connection ${this.name} ${JSON.stringify(error)}`);
@@ -52,13 +54,13 @@ function makeNewConnection(uri) {
     return db;
 }
 
-
-//connect to both databases
+//connect to databases
 const db = makeNewConnection(dbURI)
 const dbScores = makeNewConnection(dbURIscores)
+const dbFeedbacks = makeNewConnection(dbURIfeedbacks)
 
 // export the connections
-module.exports = { db, dbScores }
+module.exports = { db, dbScores, dbFeedbacks }
 
 // Bring in routes from the api
 //Use routes / All requests going to the api/questions goes the questions variable at the top questions.js file
@@ -90,9 +92,14 @@ app.use('/api/imageUploads', require('./routes/api/blogPosts/imageUploads'))
 app.use('/api/blogPostsViews', require('./routes/api/blogPosts/blogPostsViews'))
 
 // School API
-app.use('/schoolsapi/schools', require('./routes/api/schoolsapi/schools'))
-app.use('/schoolsapi/levels', require('./routes/api/schoolsapi/levels'))
-app.use('/schoolsapi/faculties', require('./routes/api/schoolsapi/faculties'))
+app.use('/api/schools', require('./routes/api/schools/schools'))
+app.use('/api/levels', require('./routes/api/schools/levels'))
+app.use('/api/faculties', require('./routes/api/schools/faculties'))
+
+// Feedbacks
+app.use('/api/feedbacks', require('./routes/api/feedbacks'))
+
+// Default route
 app.use('/', (req, res) => { res.status(200).send('Welcome to Quiz-Blog') })
 
 //Edit for deployment || serve static assets if in production
@@ -105,101 +112,10 @@ if (process.env.NODE_ENV === 'production') {
     app.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
     })
-    //Let's create a post build script in package.json
 }
 
 //port to run on: env when deployed and 4000 locally/cyclic.app
 const port = process.env.PORT || 4000
-
-const server = http.createServer(app);
-
-// Create an io server and allow for CORS from http://localhost:3000 with GET and POST methods
-const io = new Server(server, {
-
-    cors: {
-        // both http://localhost:3000 and quizblog.rw are allowed
-        origin: ['http://localhost:3000', 'http://localhost:4000', 'https://quizblog.rw', 'https://www.quizblog.rw', 'http://quizblog.rw', 'http://www.quizblog.rw'],
-        methods: ['GET', 'POST']
-    },
-});
-
-var onlineUsers = []
-
-// Listen for when the client connects via socket.io - client - All & Sender
-io.on('connection', (socket) => {
-    console.log(`User connected ${socket.id}`);
-
-    // Receiving message from the client
-    socket.on('frontJoinedUser', ({ user_id, email, username, role }) => {
-
-        onlineUsers.push({ socketID: socket.id, user_id, email, username, role });
-        console.log("Joined user:")
-        console.log(JSON.stringify({ user_id, email, username, role }));
-        console.log('Online users:' + onlineUsers.length);
-        console.log(JSON.stringify(onlineUsers))
-
-        // Sending message from the server to all the clients except the current user
-        socket.broadcast.emit('backJoinedUser', onlineUsers[onlineUsers.length - 1]);
-
-        console.log('Joined last:');
-        console.log(JSON.stringify(onlineUsers[onlineUsers.length - 1]))
-
-        // Sending a list of online users to all the clients including sender
-        io.emit('onlineUsersList', onlineUsers);
-    });
-
-    // Catch the emitted message from client
-    socket.on('contactMsgClient', (contactMsg) => {
-
-        // Send message back to all except current user
-        socket.broadcast.emit("contactMsgServer", contactMsg)
-    })
-
-    // Typing - sending to all except current user
-    socket.on('typing', (data) => socket.broadcast.emit('typingResponse', data));
-
-    // Logging the reply message
-    socket.on('reply', (data) => {
-        io.emit('backReply', data);
-    });
-
-
-    // CHATTING ROOM
-    // Add a user to a room
-    socket.on('join_room', (data) => {
-        const { username, roomName } = data; // sent from client when join_room event emitted
-        socket.join(roomName); // Join the user to a room
-
-        // Send message to all users currently in the room, apart from the user that just joined
-        socket.to(roomName).emit('welcome_room_message', {
-            message: `${username} has joined the chat room`,
-            username
-        });
-
-        // Send welcome msg to user that just joined chat only
-        socket.emit('welcome_room_message', {
-            message: `Welcome ${username}`,
-            username
-        });
-
-        // Send Messages inside chat room
-        socket.on('room_message', (data) => {
-            io.in(roomName).emit('backRoomMessage', data);
-        })
-
-    });
-
-    // Sending message when the client disconnects
-    socket.on('disconnect', () => {
-        console.log('A user disconnected ' + socket.id);
-
-        //Updates the list of users when a user disconnects from the server
-        onlineUsers = onlineUsers.filter((user) => user.socketID !== socket.id);
-
-        //Sends the list of users to the client
-        io.emit('onlineUsersList', onlineUsers);
-    });
-});
 
 server.listen(port, () => {
     console.log(`Server is listening on port ${port}`);

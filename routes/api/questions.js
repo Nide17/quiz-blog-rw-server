@@ -1,12 +1,13 @@
 const express = require("express")
+const { S3 } = require("@aws-sdk/client-s3")
 const router = express.Router()
 const config = require('config')
+
 // auth middleware to protect routes
-const { auth, authRole } = require('../../middleware/auth')
-const AWS = require('aws-sdk')
+const { authRole } = require('../../middleware/authMiddleware.js')
 const { questionUpload } = require('./utils/questionUpload.js')
 
-const s3Config = new AWS.S3({
+const s3Config = new S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
   Bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket')
@@ -19,7 +20,6 @@ const Quiz = require('../../models/Quiz')
 // @route GET api/questions
 // @route Get All questions
 // @route Public
-
 //we use router. instead of app. and / because we are already in this dir
 router.get('/', async (req, res) => {
 
@@ -118,6 +118,7 @@ router.post("/", authRole(['Admin', 'Creator', 'SuperAdmin']), questionUpload.si
 // @access Private: Accessed by authorization
 router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.single('question_image'), async (req, res) => {
 
+  console.log(req.body)
   const { questionText, answerOptions, quiz, oldQuizID, last_updated_by, duration } = req.body
   const qnImage = req.file
 
@@ -151,6 +152,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
     // Editing question
     else {
       // Changing answerOptions from string to json
+      console.log(answerOptions)
       const answers = answerOptions.map(a => JSON.parse(a))
 
       // Delete existing image
@@ -242,7 +244,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
     )
 
     // Delete the question
-    const removedQuestion = await question.remove()
+    const removedQuestion = await Question.deleteOne({ _id: req.params.id })
 
     if (!removedQuestion)
       throw Error('Something went wrong while deleting!')

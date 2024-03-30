@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 
 // auth middleware to protect routes
-const { authRole } = require('../../middleware/auth')
+const { authRole } = require('../../middleware/authMiddleware')
 const Faq = require('../../models/Faq')
 
 // @route   GET /api/faqs
@@ -157,7 +157,7 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         if (!faq) throw Error('Faq is not found!')
 
         // Delete Faq
-        const removedFaq = await faq.remove()
+        const removedFaq = await Faq.deleteOne({ _id: req.params.id })
 
         if (!removedFaq)
             throw Error('Something went wrong while deleting!')
