@@ -75,8 +75,9 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 
     if (!scores) throw Error('No scores exist')
 
-    const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
-    const archive1Response = await axios.get(archiveUrl)
+    // ARCHIVE SCORES - OTHER DATABASE
+    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
+    // const archive1Response = await axios.get(archiveUrl)
 
     if (pageNo > 0) {
       return res.status(200).json({

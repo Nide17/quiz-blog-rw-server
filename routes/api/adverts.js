@@ -74,7 +74,8 @@ router.get('/created-by/:id', async (req, res) => {
 // @route Private: accessed by authorized user
 router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_image'), async (req, res) => {
 
-    const { caption, phone, owner, email } = req.body
+    const { caption, phone, owner, email, link } = req.body
+    console.log(req)
 
     // Simple validation
     if (!caption || !owner || !email || !phone) {
@@ -97,6 +98,7 @@ router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_
                 phone,
                 owner,
                 email,
+                link,
                 // advert_image: ad_file.location
                 // IF WORKING LOCALLY
                 advert_image: ad_file.location ? ad_file.location : ad_file.path
@@ -111,6 +113,7 @@ router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_
                 owner: savedAdvert.owner,
                 phone: savedAdvert.phone,
                 email: savedAdvert.email,
+                link: savedAdvert.link,
                 advert_image: savedAdvert.advert_image,
                 createdAt: savedAdvert.createdAt
             })

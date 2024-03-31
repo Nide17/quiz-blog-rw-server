@@ -15,15 +15,17 @@ const s3Config = new S3({
 // Uploading image to aws
 const multerS3Config = multerS3({
     s3: s3Config,
-    bucket: process.env.S3_BUCKET_ADVERTS || config.get('S3AdvertsBucket'),
+    bucket: process.env.S3_BUCKET_ADVERTS || config.get('S3AdvertsBucket'), // Ensure this is just the bucket name without slashes
     metadata: (req, file, callback) => {
         callback(null, { fieldName: file.fieldname })
     },
     key: (req, file, callback) => {
-        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, req.params.id + '-' + fileName)
+        // Include the desired folder structure as part of the object key
+        const folderName = 'adverts/'; // This simulates a folder structure within the bucket
+        const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-');
+        callback(null, folderName + req.params.id + '-' + fileName);
     }
-})
+});
 
 // File Filter for multer to check if the file is an image
 const fileFilter = (req, file, callback) => {
