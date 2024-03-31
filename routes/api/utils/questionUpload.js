@@ -8,7 +8,8 @@ const multerS3 = require('multer-s3')
 const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
-    Bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket')
+    Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+    region: process.env.AWS_REGION || config.get('AWS_Region')
 })
 
 
@@ -38,13 +39,14 @@ const storage = multer.diskStorage({
 // Uploading image to aws
 const multerS3Config = multerS3({
     s3: s3Config,
-    bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket'),
+    bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
     metadata: (req, file, callback) => {
         callback(null, { fieldName: file.fieldname })
     },
     key: (req, file, callback) => {
+        const folderName = 'questions/';
         const fileName = file.originalname.toLowerCase().split(' ').join('-').replace(/[^a-zA-Z0-9.]/g, '-')
-        callback(null, req.params.id + '-' + fileName)
+        callback(null, folderName + req.params.id + '-' + fileName)
     }
 })
 

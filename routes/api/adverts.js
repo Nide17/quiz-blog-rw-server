@@ -75,7 +75,6 @@ router.get('/created-by/:id', async (req, res) => {
 router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_image'), async (req, res) => {
 
     const { caption, phone, owner, email, link } = req.body
-    console.log(req)
 
     // Simple validation
     if (!caption || !owner || !email || !phone) {
@@ -123,7 +122,6 @@ router.post('/', authRole(['Admin', 'SuperAdmin']), advertUpload.single('advert_
             res.status(400).json({ msg: err.message })
         }
     }
-
 })
 
 // @route PUT api/adverts/:id

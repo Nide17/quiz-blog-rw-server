@@ -10,7 +10,8 @@ const { questionUpload } = require('./utils/questionUpload.js')
 const s3Config = new S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
-  Bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket')
+  Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+  region: process.env.AWS_REGION || config.get('AWS_Region')
 })
 
 //Question Model : use capital letters since it's a model
@@ -158,7 +159,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
       // Delete existing image
       const params = question.question_image ?
         {
-          Bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket'),
+          Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
           Key: question.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
         } :
         null
@@ -213,7 +214,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
     // Delete existing image
     const params = question.question_image ?
       {
-        Bucket: process.env.S3_BUCKET_QUESTIONS || config.get('S3QuestionsBucket'),
+        Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
         Key: question.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
       } :
       null

@@ -7,7 +7,7 @@ const { notesUpload } = require('./utils/notesUpload.js')
 const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
-    Bucket: process.env.S3_BUCKET_NOTES || config.get('S3NotesBucket')
+    Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
 })
 
 // Notes Model
@@ -190,7 +190,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), notesUpload.sin
 
             // Delete existing notes
             const params = {
-                Bucket: process.env.S3_BUCKET_NOTES || config.get('S3NotesBucket'),
+                Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
                 Key: note.notes_file.split('/').pop() //if any sub folder-> path/of/the/folder.ext
             }
 
@@ -272,7 +272,7 @@ router.delete('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, 
         if (!notes) throw Error('Notes not found!')
 
         const params = {
-            Bucket: process.env.S3_BUCKET_NOTES || config.get('S3NotesBucket'),
+            Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
             Key: notes.notes_file.split('/').pop() //if any sub folder-> path/of/the/folder.ext
         }
 

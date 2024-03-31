@@ -6,7 +6,8 @@ const router = express.Router()
 const s3Config = new S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
-  Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket')
+  Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+  region: process.env.AWS_REGION || config.get('AWS_Region')
 })
 
 // User Model
@@ -115,7 +116,7 @@ router.put('/user-image/:id', auth, profileUpload.single('profile_image'), async
       if (profile && profile.image) {
 
         const params = {
-          Bucket: process.env.S3_BUCKET_PROFILES || config.get('S3ProfilesBucket'),
+          Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
           Key: profile.image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
         }
 

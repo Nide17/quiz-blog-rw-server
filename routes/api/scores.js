@@ -386,13 +386,13 @@ router.get('/taken-by/:id', async (req, res) => {
 
     if (!scores) throw Error('No scores found')
 
-    const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023/taken-by/${id}`
-    const archive1Response = await axios.get(archiveUrl)
+    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023/taken-by/${id}`
+    // const archive1Response = await axios.get(archiveUrl)
 
-    // APPEND ARCHIVE SCORES
-    if (archive1Response.data.length > 0) {
-      scores.push(...archive1Response.data)
-    }
+    // // APPEND ARCHIVE SCORES
+    // if (archive1Response.data.length > 0) {
+    //   scores.push(...archive1Response.data)
+    // }
     res.status(200).json(scores)
 
   } catch (err) {

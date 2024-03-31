@@ -11,7 +11,6 @@ const { sendEmail } = require("./emails/sendEmail")
 const User = require('../../models/User')
 const PswdResetToken = require('../../models/PswdResetToken')
 
-
 // @route   GET api/auth/user
 // @desc    Get user data to keep logged in user token bcz jwt data are stateless - loadUser
 // @access  Private: Accessed by any logged in user
@@ -135,8 +134,6 @@ router.post('/login', async (req, res) => {
     res.status(400).json(err.message)
   }
 })
-
-
 
 // @route   POST api/auth/register
 // @desc    Register new user

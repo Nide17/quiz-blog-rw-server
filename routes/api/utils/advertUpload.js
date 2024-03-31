@@ -8,14 +8,14 @@ const multerS3 = require('multer-s3')
 const s3Config = new S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
-    Bucket: process.env.S3_BUCKET_ADVERTS || config.get('S3AdvertsBucket'),
+    Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
     region: process.env.AWS_REGION || config.get('AWS_Region')
 })
 
 // Uploading image to aws
 const multerS3Config = multerS3({
     s3: s3Config,
-    bucket: process.env.S3_BUCKET_ADVERTS || config.get('S3AdvertsBucket'), // Ensure this is just the bucket name without slashes
+    bucket: process.env.S3_BUCKET || config.get('S3Bucket'), // Ensure this is just the bucket name without slashes
     metadata: (req, file, callback) => {
         callback(null, { fieldName: file.fieldname })
     },
