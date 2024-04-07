@@ -102,19 +102,12 @@ router.post("/rooms", auth, async (req, res) => {
 // @route POST api/chatrooms/rooms/
 // @route Create and/or enter a room - return it
 // @route Private
-router.post("/rooms/room/:roomNameToGet", auth, async (req, res) => {
+router.post("/rooms/room/:roomNameToOpen", auth, async (req, res) => {
 
-    const { users } = req.body
-    const name = req.params.roomNameToGet
-
-    // Simple validation
-    if (!users) {
-        return res.status(400).json({ msg: 'No room users provided' })
-    }
+    const name = req.params.roomNameToOpen
 
     // Search if the chat room is already existing
-    const chatroom = await ChatRoom.findOne({ name })
-        .populate('users')
+    const chatroom = await ChatRoom.findOne({ name }).populate('users')
 
     // If yes, return the chat room
     if (chatroom) {
@@ -123,14 +116,20 @@ router.post("/rooms/room/:roomNameToGet", auth, async (req, res) => {
 
     // else create a new chat room
     else {
+
+        // Simple validation
+        const { users } = req.body
+        if (!users || users.length < 2) {
+            return res.status(400).json({ msg: 'No room users provided' })
+        }
+
         try {
             const newRoom = new ChatRoom({ name, users })
 
             const savedRoom = await newRoom.save()
             if (!savedRoom) throw Error('Something went wrong during creation!')
 
-            const createdChatroom = await ChatRoom.findById({ _id: savedRoom._id })
-                .populate('users')
+            const createdChatroom = await ChatRoom.findById({ _id: savedRoom._id }).populate('users')
 
             res.status(200).json(createdChatroom)
 
@@ -160,19 +159,19 @@ router.get('/messages/room/:roomID', auth, async (req, res) => {
 // @route Private
 router.post("/messages", auth, async (req, res) => {
 
-    const { sender, receiver, content, room } = req.body
+    const { senderID, receiverID, content, roomID } = req.body
 
     // Simple validation
-    if (!sender || !receiver || !content || !room) {
+    if (!senderID || !receiverID || !content || !roomID) {
         return res.status(400).json({ msg: 'Empty fields' })
     }
 
     try {
         const newRoomMessage = new RoomMessage({
-            sender,
-            receiver,
+            sender: senderID,
+            receiver: receiverID,
             content,
-            room
+            room: roomID
         })
 
         const savedMessage = await newRoomMessage.save()
@@ -183,7 +182,8 @@ router.post("/messages", auth, async (req, res) => {
             sender: savedMessage.sender,
             receiver: savedMessage.receiver,
             content: savedMessage.content,
-            room: savedMessage.room
+            room: savedMessage.room,
+            createdAt: savedMessage.createdAt
         })
 
     } catch (err) {

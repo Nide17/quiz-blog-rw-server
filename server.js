@@ -7,14 +7,14 @@ const compression = require('compression')
 var expressStaticGzip = require("express-static-gzip")
 const cors = require('cors')
 const http = require('http')
-const socketio = require('./utils/socket')
+const { initialize } = require('./utils/socket')
 
 // Initialize express into the app variable
 const app = express()
 
 // SOCKET.IO CONNECTION INITIALIZATION
 const server = http.createServer(app)
-socketio.initialize(server);
+initialize(server)
 
 // compress all responses
 app.use(compression())
@@ -33,25 +33,25 @@ const dbURIfeedbacks = process.env.MONGO_URI_FEEDBACKS || config.get('mongoURIfe
 
 //connect to databases
 function makeNewConnection(uri) {
-    const db = mongoose.createConnection(uri);
+    const db = mongoose.createConnection(uri)
 
     db.on('error', function (error) {
-        console.log(`MongoDB :: connection ${this.name} ${JSON.stringify(error)}`);
-        db.close().catch(() => console.log(`MongoDB :: failed to close connection ${this.name}`));
-    });
+        console.log(`MongoDB :: connection ${this.name} ${JSON.stringify(error)}`)
+        db.close().catch(() => console.log(`MongoDB :: failed to close connection ${this.name}`))
+    })
 
     db.on('connected', function () {
         mongoose.set('debug', function (col, method, query, doc) {
-            // console.log(`MongoDB :: ${this.conn.name} ${col}.${method}(${JSON.stringify(query)},${JSON.stringify(doc)})`);
-        });
-        console.log(`MongoDB :: connected ${this.name}`);
-    });
+            // console.log(`MongoDB :: ${this.conn.name} ${col}.${method}(${JSON.stringify(query)},${JSON.stringify(doc)})`)
+        })
+        console.log(`MongoDB :: connected ${this.name}`)
+    })
 
     db.on('disconnected', function () {
-        console.log(`MongoDB :: disconnected ${this.name}`);
-    });
+        console.log(`MongoDB :: disconnected ${this.name}`)
+    })
 
-    return db;
+    return db
 }
 
 //connect to databases
@@ -118,5 +118,5 @@ if (process.env.NODE_ENV === 'production') {
 const port = process.env.PORT || 4000
 
 server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+    console.log(`Server is listening on port ${port}`)
 })

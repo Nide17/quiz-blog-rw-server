@@ -127,7 +127,7 @@ router.get('/:id', auth, (req, res) => {
 
     //return a promise
     .then(contact => res.json(contact))
-    
+
     // if id not exist or if error
     .catch(err => res.status(404).json({ success: false }))
 })
@@ -140,28 +140,25 @@ router.put('/:id', auth, async (req, res) => {
   try {
 
     // Update the Quiz on Contact updating
-    const contact = await Contact.updateOne(
+    const newMessage = await Contact.updateOne(
       { "_id": req.params.id },
       { $push: { "replies": req.body } },
       { new: true }
     )
 
-    console.log(req.body.to_contact)
-    console.log(req.body)
+    // // Send Reply email
+    // sendEmail(
+    //   req.body.to_contact,
+    //   "New reply",
+    //   {
+    //     name: req.body.to_contact_name,
+    //     question: req.body.contact_question,
+    //     answer: req.body.message,
+    //   },
+    //   "./template/reply.handlebars")
 
-    // Send Reply email
-    sendEmail(
-      req.body.to_contact,
-      "New reply",
-      {
-        name: req.body.to_contact_name,
-        question: req.body.contact_question,
-        answer: req.body.message,
-      },
-      "./template/reply.handlebars")
-
-    res.status(200).json(contact)
-
+    // send reply to server
+    res.status(200).json(req.body)
   } catch (err) {
     res.status(400).json({
       msg: 'Failed to update! ' + err.message,
