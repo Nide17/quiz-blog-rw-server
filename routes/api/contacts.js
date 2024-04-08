@@ -146,16 +146,16 @@ router.put('/:id', auth, async (req, res) => {
       { new: true }
     )
 
-    // // Send Reply email
-    // sendEmail(
-    //   req.body.to_contact,
-    //   "New reply",
-    //   {
-    //     name: req.body.to_contact_name,
-    //     question: req.body.contact_question,
-    //     answer: req.body.message,
-    //   },
-    //   "./template/reply.handlebars")
+    // Send Reply email
+    sendEmail(
+      req.body.to_contact,
+      "New reply",
+      {
+        name: req.body.to_contact_name,
+        question: req.body.contact_question,
+        answer: req.body.message,
+      },
+      "./template/reply.handlebars")
 
     // send reply to server
     res.status(200).json(req.body)
@@ -171,7 +171,7 @@ router.put('/:id', auth, async (req, res) => {
 // @route delete a Contact
 // @route Private: Accessed by authorization
 router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
-
+console.log("Deleting contact")
   try {
     const contact = await Contact.findById(req.params.id)
 
@@ -181,6 +181,7 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
     if (!removed) throw Error('Something went wrong while trying to delete the contact')
 
+    console.log("Deleted!")
     res.status(200).json({ success: true })
 
   } catch (err) {

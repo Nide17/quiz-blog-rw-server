@@ -22,7 +22,6 @@ router.get('/user', auth, async (req, res) => {
       .populate('school level faculty', '_id title years')
 
     if (!user) throw Error('User Does not exist')
-
     res.json(user)
 
   } catch (err) {
@@ -45,7 +44,7 @@ router.put('/logout', auth, async (req, res) => {
 
     if (!loggedOutUser) throw Error('Something went wrong current token date')
 
-    res.status(200).json({ msg: 'You are logged out!', current_token: loggedOutUser.current_token })
+    res.status(200).json({ msg: 'You are logged out!', id: 'LOGOUT_SUCCESS', status: 200 })
   } catch (err) {
     res.status(400).json(err.message)
   }
@@ -76,23 +75,19 @@ router.post('/login', async (req, res) => {
     // Check current_token for validity
     jwt.verify(user.current_token, process.env.JWT_SECRET || config.get('jwtSecret'), async (err, decoded) => {
 
-      if (err) {
-        // Sign and generate token
+      // WHEN THE CURRENT TOKEN IS INVALID, SIGN IN AGAIN
+      if (!user.current_token || err) {
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
 
         if (!token) throw Error('Could not sign in, try again!')
 
         // update current token date for this user
-        const updatedUser = await User.findByIdAndUpdate(
-          { _id: user._id },
-          { $set: { current_token: token } },
-          { new: true }
-        )
+        const updatedUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { current_token: token } }, { new: true })
 
         if (!updatedUser) throw Error('Something went wrong current token date')
 
         res.status(200).json({
-          current_token: updatedUser.current_token,
+          current_token: token,
           user: {
             _id: updatedUser._id,
             name: updatedUser.name,
@@ -101,6 +96,8 @@ router.post('/login', async (req, res) => {
           }
         })
       }
+
+      // WHEN THE CURRENT TOKEN IS STILL VALID, CHECK IF USER WANTS TO LOG IN FROM ANOTHER DEVICE
       else {
         if (!confirmLogin) {
           return res.status(401).json({
@@ -108,23 +105,23 @@ router.post('/login', async (req, res) => {
             id: 'CONFIRM_ERR', status: 401
           })
         }
+
         else {
-
           // Sign and generate token
-          const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
+          const token1 = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET || config.get('jwtSecret'), { expiresIn: '2h' })
 
-          if (!token) throw Error('Could not sign in, try again!')
+          if (!token1) throw Error('Could not sign in, try again!')
           // update current token date for this user
-          const updatedUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { current_token: token } }, { new: true })
+          const confirmedUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { current_token: token1 } }, { new: true })
 
-          if (!updatedUser) throw Error('Something went wrong current token date')
+          if (!confirmedUser) throw Error('Something went wrong current token date')
           res.status(200).json({
-            current_token: updatedUser.current_token,
+            current_token: token1,
             user: {
-              _id: updatedUser._id,
-              name: updatedUser.name,
-              email: updatedUser.email,
-              role: updatedUser.role
+              _id: confirmedUser._id,
+              name: confirmedUser.name,
+              email: confirmedUser.email,
+              role: confirmedUser.role
             },
           })
         }
@@ -218,12 +215,10 @@ router.post('/forgot-password', async (req, res) => {
 
     if (!userToReset) throw Error('User with that email does not exist!')
 
-    res.json(userToReset)
-
     // check if there is an existing token for this user & delete it.
-    let tokn = await PswdResetToken.findOne({ userId: userToReset._id })
-    if (tokn) {
-      await tokn.deleteOne()
+    let token = await PswdResetToken.findOne({ userId: userToReset._id })
+    if (token) {
+      await token.deleteOne()
     }
 
     // create a new random token for resetting password
@@ -254,10 +249,13 @@ router.post('/forgot-password', async (req, res) => {
         link: link,
       },
       "./template/requestResetPassword.handlebars"
-    )
-
-    return link
-
+    ).then(() => {
+      res.status(200).send('Reset email sent successfully');
+    })
+      .catch((error) => {
+        console.error(error);
+        res.status(500).send('Failed to send reset link to your email!');
+      });
   } catch (err) {
     res.status(400).json(err.message)
   }

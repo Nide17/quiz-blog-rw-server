@@ -119,13 +119,12 @@ router.post("/", authRole(['Admin', 'Creator', 'SuperAdmin']), questionUpload.si
 // @access Private: Accessed by authorization
 router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.single('question_image'), async (req, res) => {
 
-  console.log(req.body)
   const { questionText, answerOptions, quiz, oldQuizID, last_updated_by, duration } = req.body
   const qnImage = req.file
 
   //Find the Question by id
-  const question = await Question.findOne({ _id: req.params.id });
-  if (!question) throw Error('Failed! question not exists!');
+  const oldQuestion = await Question.findOne({ _id: req.params.id });
+  if (!oldQuestion) throw Error('Failed! question not exists!');
 
   try {
 
@@ -139,28 +138,28 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
       // Delete Question in old quiz
       await Quiz.updateOne(
         { _id: oldQuizID },
-        { $pull: { questions: question._id } }
+        { $pull: { questions: oldQuestion._id } }
       )
 
       // Update the Quiz on Question updating
       await Quiz.updateOne(
         { "_id": quiz },
-        { $addToSet: { "questions": question._id } }
+        { $addToSet: { "questions": oldQuestion._id } }
       )
       res.status(200).json(updatedQuestion);
     }
 
     // Editing question
     else {
-      // Changing answerOptions from string to json
       console.log(answerOptions)
+      // Changing answerOptions from string to json
       const answers = answerOptions.map(a => JSON.parse(a))
 
       // Delete existing image
-      const params = question.question_image ?
+      const params = oldQuestion.question_image ?
         {
           Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
-          Key: question.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+          Key: oldQuestion.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
         } :
         null
 
@@ -194,6 +193,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
     }
 
   } catch (err) {
+    console.log(err)
     res.status(400).json({
       msg: 'Failed to update! ' + err.message,
       success: false

@@ -159,7 +159,7 @@ router.get('/messages/room/:roomID', auth, async (req, res) => {
 // @route Private
 router.post("/messages", auth, async (req, res) => {
 
-    const { senderID, receiverID, content, roomID } = req.body
+    const { senderID, senderName, receiverID, content, roomID } = req.body
 
     // Simple validation
     if (!senderID || !receiverID || !content || !roomID) {
@@ -183,7 +183,8 @@ router.post("/messages", auth, async (req, res) => {
             receiver: savedMessage.receiver,
             content: savedMessage.content,
             room: savedMessage.room,
-            createdAt: savedMessage.createdAt
+            createdAt: savedMessage.createdAt,
+            senderName,
         })
 
     } catch (err) {

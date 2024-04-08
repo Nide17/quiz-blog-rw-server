@@ -1,10 +1,19 @@
 const express = require('express')
+const { S3 } = require("@aws-sdk/client-s3")
 const router = express.Router()
+const config = require('config')
 
 // auth middleware to protect routes
 const { authRole } = require('../../middleware/authMiddleware.js')
 const { advertUpload } = require('./utils/advertUpload.js')
 const Advert = require('../../models/Advert')
+
+const s3Config = new S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || config.get('AWSAccessKeyId'),
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || config.get('AWSSecretKey'),
+    Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+    region: process.env.AWS_REGION || config.get('AWS_Region')
+})
 
 // @route   GET /api/adverts
 // @desc    Get adverts
@@ -14,7 +23,6 @@ router.get('/', async (req, res) => {
         const adverts = await Advert.find().sort({ createdAt: -1 })
         if (!adverts) throw Error('No adverts found')
         res.status(200).json(adverts)
-
     } catch (err) {
         res.status(400).json({ msg: err.message })
     }
@@ -208,6 +216,29 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     try {
         const advert = await Advert.findById(req.params.id)
         if (!advert) throw Error('advert is not found!')
+
+        const params = advert.advert_image ?
+            {
+                Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+                Key: advert.advert_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+            } :
+            null
+        // Deleting  image
+        try {
+            params ?
+                s3Config.deleteObject(params, (err, data) => {
+                    if (err) {
+                        console.log(err, err.stack); // an error occurred
+                    }
+                    else {
+                        console.log(params.Key + ' deleted!');
+                    }
+                }) : null
+
+        }
+        catch (err) {
+            console.log('ERROR in file Deleting : ' + JSON.stringify(err))
+        }
 
         // Delete Advert
         const removedAdvert = await Advert.deleteOne({ _id: req.params.id })

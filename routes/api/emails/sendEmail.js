@@ -5,7 +5,9 @@ const path = require("path")
 const config = require('config')
 
 const sendEmail = async (email, subject, payload, template) => {
-  try {
+
+  return new Promise((resolve, reject) => {
+
     // create reusable transporter object using the default SMTP transport
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -24,38 +26,25 @@ const sendEmail = async (email, subject, payload, template) => {
     const source = fs.readFileSync(path.join(__dirname, template), "utf8")
     const compiledTemplate = handlebars.compile(source)
 
-    // Mail options
-    const options = () => {
-      return {
-        from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
-        to: email,
-        subject: subject,
-        html: compiledTemplate(payload),
-        // attachments: [
-        //   {
-        //     filename: 'quizLogo.jpg',
-        //     path: __dirname + '/template/quizLogo.jpg'
-        //   }
-        // ]
-      }
-    }
+    // Email template for the reset link
+    const mailOptions = {
+      from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
+      to: email,
+      subject: subject,
+      html: compiledTemplate(payload),
+    };
 
-    // Send email
-    transporter.sendMail(options(), (err, info) => {
-
-      if (err) {
-        console.log(err)
-        return err
-
+    // Sending the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(error);
+        reject(error);
       } else {
-        console.log('Email sent to ' + info.envelope.to[0])
-        return info
+        console.log('Email sent: ' + info.response);
+        resolve(info);
       }
-    })
-
-  } catch (err) {
-    return console.log({ msg: err.message })
-  }
+    });
+  })
 }
 
 
