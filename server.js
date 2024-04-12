@@ -20,7 +20,7 @@ initialize(server)
 app.use(compression())
 
 // Avoid CORS errors
-app.use(cors())
+app.use(cors({ origin: '*' }))
 
 // Middlewares 1.Express body parser to access request body and 2. urlencoded to access form data
 app.use(express.json())
