@@ -23,6 +23,9 @@ const AdvertSchema = new Schema({
         type: String,
         required: true
     },
+    link: {
+        type: String
+    },
     advert_image: {
         type: String,
         required: true
