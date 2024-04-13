@@ -3,8 +3,15 @@ const socketIO = require('socket.io');
 let io = null;
 let onlineUsers = []
 
+const CORSOptions = {
+    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token", "Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    origin: "*",
+    credentials: true
+};
+
 exports.initialize = (httpServer) => {
-    io = socketIO(httpServer, { cors: { origin: "*" } });
+    io = socketIO(httpServer, { cors: CORSOptions });
 
     io.on('connection', (socket) => {
 
