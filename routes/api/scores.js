@@ -239,123 +239,98 @@ router.get('/ranking/:id', async (req, res) => {
 })
 
 // @route   GET /api/scores/popular-quizes
-// @desc    Get popular quizes by today's scores
+// @desc    Get popular quizes by this week's scores
 // @access  Public
 router.get('/popular-quizes', async (req, res) => {
 
-  var now = new Date();
-  var startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
-  try {
-    await Score.aggregate([
-      {
-        // Join with quiz collection
-        $lookup:
-        {
-          from: "quizzes",
-          localField: "quiz",
-          foreignField: "_id",
-          as: "quiz_scores"
-        }
-      },
-      // First Stage: today's scores
-      {
-        $match: { "test_date": { $gte: startOfToday } }
-      },
-      { $unwind: '$quiz_scores' },
-      // Second Stage: group
-      {
-        $group: {
-          _id: { qId: "$quiz_scores._id", qTitle: "$quiz_scores.title", slug: "$quiz_scores.slug" },
-          count: { $sum: 1 }
-        }
-      },
-      // Third Stage: sort by count
-      {
-        $sort: { count: -1 }
-      },
-      // Fourth Stage: only top 3
-      { $limit: 3 }
-    ]).exec()
-      .then(scores => res.json(scores))
-      .catch(err => res.status(400).json({ msg: err.message }))
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
 
-  } catch (err) {
-    res.status(400).json({
-      msg: 'Failed to retrieve! ' + err.message
-    })
-  }
+  Score.aggregate([
+    {
+      $match: {
+        test_date: {
+          $gte: startOfDay,
+          $lte: endOfDay
+        }
+      }
+    },
+    {
+      $group: {
+        _id: "$quiz",
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { count: -1 }
+    },
+    {
+      $limit: 3
+    }
+  ]).then(topQuizzes => {
+    Quiz.populate(topQuizzes, { path: '_id', select: 'title slug' })
+      .then(popularQuizes => {
+        res.json(popularQuizes.map(pq => {
+          return {
+            _id: pq._id._id,
+            qTitle: pq._id.title,
+            slug: pq._id.slug,
+            count: pq.count
+          }
+        }))
+      })
+      .catch(error => { console.error(error) })
+  })
+    .catch(error => { console.error(error) })
 })
 
 // @route   GET /api/scores/monthly-user
-// @desc    Get popular users by today's scores
+// @desc    Get popular users by scores in this month
 // @access  Public
 router.get('/monthly-user', async (req, res) => {
 
-  var now = new Date();
-  var startOfMonth = new Date(now.getFullYear(), now.getMonth())
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  try {
-    await Score.aggregate([
-      {
-        // Join with quiz collection from db connection (const Quiz = require('../../models/Quiz'))
-        // Note: Score model has a default connection to the dbScores
-        $lookup:
-        {
-          from: 'quizzes', // 'quiz' is the name of the collection in the db 'dbQuizzes
-          localField: "quiz",
-          foreignField: "_id",
-          as: "quiz_scores"
-        }
-      },
-      {
-        // Join with users collection
-        $lookup:
-        {
-          from: 'users', // 'user' is the name of the collection in the db 'dbUsers
-          localField: "taken_by",
-          foreignField: "_id",
-          as: "taken_by_scores"
-        }
-      },
-      // First Stage: today's scores
-      {
-        $match: { "test_date": { $gte: startOfMonth } }
-      },
-      // Second Stage: unwinding or populating
-      { $unwind: '$quiz_scores' },
-      { $unwind: '$taken_by_scores' },
-      // Third stage: matching visitors and creators
-      {
-        $match: {
-          "taken_by_scores.role": {
-            $in: ['Visitor', 'Creator']
-          }
-        }
-      },
-      // Fourth Stage: group
-      {
-        $group: {
-          _id: { uId: "$taken_by_scores._id", uEmail: "$taken_by_scores.email", uName: "$taken_by_scores.name", uPhoto: "$taken_by_scores.image" },
-          count: { $sum: 1 }
-        }
-      },
-      // Fifth Stage: sort by count
-      {
-        $sort: { count: -1 }
-      },
-      // Six Stage: only top 3
-      { $limit: 1 }
-    ]).exec()
-      .then(scores => res.json(scores[0]))
-      .catch(err => res.status(400).json({ msg: err.message }))
+  const endOfMonth = new Date();
+  endOfMonth.setHours(23, 59, 59, 999);
 
-  } catch (err) {
-    res.status(400).json({
-      msg: 'Failed to retrieve! ' + err.message
-    })
-  }
-
+  Score.aggregate([
+    {
+      $match: {
+        test_date: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        }
+      }
+    },
+    {
+      $group: {
+        _id: "$taken_by",
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { count: -1 }
+    },
+    {
+      $limit: 1
+    }
+  ]).then(monthlyUser => {
+    User.populate(monthlyUser, { path: '_id', select: 'name image' })
+      .then(user => {
+        res.json({
+          uName: user[0]._id.name,
+          uPhoto: user[0]._id.image
+        })
+      })
+      .catch(error => { console.error(error) })
+  })
+    .catch(error => { console.error(error) })
 })
 
 // @route   GET /api/scores/taken-by/:id
@@ -488,7 +463,6 @@ router.post('/', auth, async (req, res) => {
       }
 
     } catch (err) {
-      // console.log(err.message)
       res.status(400).json({ msg: 'Failed to save score! ' + err.message })
     }
   }
