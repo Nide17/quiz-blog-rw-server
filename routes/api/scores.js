@@ -75,10 +75,6 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
 
     if (!scores) throw Error('No scores exist')
 
-    // ARCHIVE SCORES - OTHER DATABASE
-    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023`
-    // const archive1Response = await axios.get(archiveUrl)
-
     if (pageNo > 0) {
       return res.status(200).json({
         totalPages: Math.ceil(totalPages / PAGE_SIZE),
@@ -210,7 +206,6 @@ router.get('/ranking/:id', async (req, res) => {
       .sort({ marks: -1 })
       .limit(20)
       .select('quiz taken_by category id marks out_of')
-      // .populate('quiz taken_by category')
       .populate({
         path: 'quiz',
         model: Quiz,
@@ -323,11 +318,16 @@ router.get('/monthly-user', async (req, res) => {
   ]).then(monthlyUser => {
     User.populate(monthlyUser, { path: '_id', select: 'name image' })
       .then(user => {
-        res.json({
-          uName: user[0]._id.name,
-          uPhoto: user[0]._id.image
-        })
-      })
+        console.log(user)
+        if (user.length > 0) {
+          res.json({
+            uName: user[0]._id && user[0]._id.name,
+            uPhoto: user[0]._id && user[0]._id.image
+          })
+        }
+        else {
+          res.json(null)
+        }})
       .catch(error => { console.error(error) })
   })
     .catch(error => { console.error(error) })
@@ -342,7 +342,6 @@ router.get('/taken-by/:id', async (req, res) => {
   try {
     //Find the scores by id
     const scores = await Score.find({ taken_by: id })
-      // .populate('category quiz taken_by')
       .populate({
         path: 'quiz',
         model: Quiz,
@@ -360,14 +359,6 @@ router.get('/taken-by/:id', async (req, res) => {
       })
 
     if (!scores) throw Error('No scores found')
-
-    // const archiveUrl = `${process.env.SCORES_ARCHIVE_1 || config.get('SCORES_ARCHIVE_1')}/api/scores30082023/taken-by/${id}`
-    // const archive1Response = await axios.get(archiveUrl)
-
-    // // APPEND ARCHIVE SCORES
-    // if (archive1Response.data.length > 0) {
-    //   scores.push(...archive1Response.data)
-    // }
     res.status(200).json(scores)
 
   } catch (err) {
