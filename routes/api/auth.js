@@ -18,7 +18,7 @@ router.get('/user', auth, async (req, res) => {
 
   try {
     const user = await User.findById(req.user._id)
-      .select('-password')
+      .select('-password -__v')
       .populate('school level faculty', '_id title years')
 
     if (!user) throw Error('User Does not exist')
