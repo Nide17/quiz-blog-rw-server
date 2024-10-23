@@ -36,7 +36,6 @@ router.get('/', async (req, res) => {
             .populate('category questions created_by')
 
         if (!quizes) throw Error('No quizes found')
-
         res.status(200).json(quizes)
     } catch (err) {
         res.status(400).json({ msg: err.message })
@@ -228,13 +227,13 @@ router.post('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) 
 // @access  Private: authorization
 router.post('/notifying', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) => {
 
-    const { quizId, slug, title, category, created_by } = req.body
+    const { slug, title, category, created_by } = req.body
 
     // Send email to subscribers of Category on Quiz creation
     const subscribers = await SubscribedUser.find()
 
     const clientURL = process.env.NODE_ENV === 'production' ?
-        'https://quizblog.rw' : 'http://localhost:3000'
+        'https://quizblog.rw' : 'http://localhost:5173'
 
     subscribers.forEach(sub => {
         sendEmail(

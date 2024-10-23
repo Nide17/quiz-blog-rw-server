@@ -151,7 +151,6 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
 
     // Editing question
     else {
-      console.log(answerOptions)
       // Changing answerOptions from string to json
       const answers = answerOptions.map(a => JSON.parse(a))
 

@@ -14,12 +14,8 @@ const SubscribedUserSchema = new Schema({
     type: String,
     required: true,
     unique: true
-  },
-  subscription_date: {
-    type: Date,
-    default: Date.now
   }
-});
+}, { timestamps: true });
 
 // //subscribedUser: the name of this model
 // module.exports = mongoose.model('subscribedUser', SubscribedUserSchema);

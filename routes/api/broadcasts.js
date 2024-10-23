@@ -59,7 +59,7 @@ router.post("/", authRole(['Admin', 'SuperAdmin']), async (req, res) => {
     const subscribers = await SubscribedUser.find()
     const allUsers = await User.find()
     const clientURL = process.env.NODE_ENV === 'production' ?
-        'https://quizblog.rw' : 'http://localhost:3000'
+        'https://quizblog.rw' : 'http://localhost:5173'
 
     try {
         const newBroadcast = new Broadcast({
