@@ -119,46 +119,49 @@ router.post("/", authRole(['Admin', 'Creator', 'SuperAdmin']), questionUpload.si
 // @access Private: Accessed by authorization
 router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.single('question_image'), async (req, res) => {
 
-  const { questionText, answerOptions, quiz, oldQuizID, last_updated_by, duration } = req.body
+  const { questionText, answerOptions, newQuiz, oldQuizID, last_updated_by, duration } = req.body
   const qnImage = req.file
 
   //Find the Question by id
-  const oldQuestion = await Question.findOne({ _id: req.params.id });
-  if (!oldQuestion) throw Error('Failed! question not exists!');
+  const qtn = await Question.findOne({ _id: req.params.id });
+  if (!qtn) throw Error('Failed! question does not exists!');
 
   try {
 
-    // changing question quiz
-    if (quiz) {
-      const updatedQuestion = await Question.findByIdAndUpdate({ _id: req.params.id }, {
-        quiz,
+    // changing question's quiz
+    if (newQuiz && oldQuizID) {
+      const updatedQuestion = await Question.findByIdAndUpdate({ _id: qtn._id }, {
+        quiz: newQuiz,
         last_updated_by,
       }, { new: true })
 
       // Delete Question in old quiz
       await Quiz.updateOne(
         { _id: oldQuizID },
-        { $pull: { questions: oldQuestion._id } }
+        { $pull: { questions: qtn._id } }
       )
 
       // Update the Quiz on Question updating
       await Quiz.updateOne(
-        { "_id": quiz },
-        { $addToSet: { "questions": oldQuestion._id } }
+        { "_id": newQuiz },
+        { $addToSet: { "questions": qtn._id } }
       )
+
       res.status(200).json(updatedQuestion);
     }
 
     // Editing question
     else {
+
       // Changing answerOptions from string to json
       const answers = answerOptions.map(a => JSON.parse(a))
 
       // Delete existing image
-      const params = oldQuestion.question_image ?
+      if (qnImage && qtn.question_image) {
+      const params = qtn.question_image ?
         {
           Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
-          Key: oldQuestion.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+          Key: qtn.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
         } :
         null
 
@@ -178,9 +181,10 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
       catch (err) {
         console.log('ERROR in file Deleting : ' + JSON.stringify(err))
       }
+    }
 
       //Find the question by id and update
-      const updatedQuestion = await Question.findByIdAndUpdate({ _id: req.params.id }, {
+      const updatedQuestion = await Question.findByIdAndUpdate({ _id: qtn._id }, {
         questionText,
         question_image: qnImage && qnImage.location,
         answerOptions: answers,
@@ -192,7 +196,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
     }
 
   } catch (err) {
-    console.log(err)
+    
     res.status(400).json({
       msg: 'Failed to update! ' + err.message,
       success: false
