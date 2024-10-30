@@ -1,98 +1,60 @@
-const nodemailer = require("nodemailer")
-const handlebars = require("handlebars")
-const fs = require("fs")
-const path = require("path")
-const config = require('config')
+const nodemailer = require("nodemailer");
+const handlebars = require("handlebars");
+const fs = require("fs");
+const path = require("path");
+const config = require('config');
 
-const sendEmail = async (email, subject, payload, template) => {
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    pool: true,
+    secure: true,
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER || config.get('EMAIL_USER'),
+      pass: process.env.EMAIL_PASS || config.get('EMAIL_PASS')
+    },
+    maxConnections: 20,
+    maxMessages: Infinity
+  });
+};
 
-  return new Promise((resolve, reject) => {
-
-    // create reusable transporter object using the default SMTP transport
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      pool: true,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER || config.get('EMAIL_USER'),
-        pass: process.env.EMAIL_PASS || config.get('EMAIL_PASS')
-      },
-      maxConnections: 20,
-      maxMessages: Infinity
-    })
-
-    const source = fs.readFileSync(path.join(__dirname, template), "utf8")
-    const compiledTemplate = handlebars.compile(source)
-
-    // Email template for the reset link
-    const mailOptions = {
-      from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
-      to: email,
-      subject: subject,
-      html: compiledTemplate(payload),
-    };
-
-    // Sending the email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error(error);
-        reject(error);
-      } else {
-        console.log('Email sent: ' + info.response);
-        resolve(info);
-      }
-    });
-  })
-}
-
-
-// Function to send html email
-const SendHtmlEmail = async (email, subject, html) => {
-
-  try {
-    // create reusable transporter object using the default SMTP transport
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      pool: true,
-      secure: true,
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      maxConnections: 20,
-      maxMessages: Infinity
-    })
-
-    // Mail options
-    const options = () => {
-      return {
-        from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
-        to: email,
-        subject: subject,
-        html: html,
-      }
+const sendActualMail = async (transporter, mailOptions, retries) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      let info = await transporter.sendMail(mailOptions);
+      console.log('Email sent: ' + info.response);
+      return info;
+    } catch (error) {
+      console.error(`Attempt ${i + 1} failed: ${error.message}`);
+      if (i === retries - 1) throw error;
     }
-
-    // Send email
-    transporter.sendMail(options(), (err, info) => {
-
-      if (err) {
-        console.log(err)
-        return err
-
-      } else {
-        console.log('Email sent to ' + info.envelope.to[0])
-        return info
-      }
-    })
-
-  } catch (err) {
-    return console.log({ msg: err.message })
   }
-}
+};
 
-module.exports = { sendEmail, SendHtmlEmail }
+const sendEmail = async (email, subject, payload, template, retries = 3) => {
+  const transporter = createTransporter();
+  const source = fs.readFileSync(path.join(__dirname, template), "utf8");
+  const compiledTemplate = handlebars.compile(source);
+  const mailOptions = {
+    from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
+    to: email,
+    subject: subject,
+    html: compiledTemplate(payload),
+  };
+  return sendActualMail(transporter, mailOptions, retries);
+};
+
+const sendHtmlEmail = async (email, subject, html, retries = 3) => {
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: '"quizblog.rw(Quiz-Blog)" <quizblog.rw@gmail.com>',
+    to: email,
+    subject: subject,
+    html: html,
+  };
+  return sendActualMail(transporter, mailOptions, retries);
+};
+
+module.exports = { sendEmail, sendHtmlEmail };

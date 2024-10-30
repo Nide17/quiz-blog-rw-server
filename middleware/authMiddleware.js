@@ -7,7 +7,7 @@ const auth = async (req, res, next) => {
 
   // Check for token: if no: No token, authorization denied
   if (!token)
-    return res.status(401).json('Authorization Denied, Please Login')
+    return res.status(401).json({ msg: 'No token, authorization Denied', id: 'NO_TOKEN' })
 
   try {
     // Verify token
@@ -15,11 +15,9 @@ const auth = async (req, res, next) => {
 
     // Add user from payload
     req.user = decoded
-    // console.log(req.user)
 
     // print the expiry date of the token
     const expiryDate = new Date(decoded.exp * 1000)
-    // console.log(`Token expires at ${expiryDate}`)
 
     next()
 
@@ -36,7 +34,7 @@ const authRole = (roles) => (req, res, next) => {
 
   // Check for token
   if (!token)
-    return res.status(401).json({ msg: 'No token, authorization Denied' })
+    return res.status(401).json({ msg: 'No token, authorization Denied', id: 'NO_TOKEN' })
 
   try {
     // Verify token
@@ -49,7 +47,7 @@ const authRole = (roles) => (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Session expired',
-        code: 'SESSION_EXPIRED'
+        id: 'SESSION_EXPIRED'
       })
     }
 
@@ -63,11 +61,11 @@ const authRole = (roles) => (req, res, next) => {
     return res.status(401).json({
       success: false,
       msg: 'Unauthorized',
+      id: 'UNAUTHORIZED'
     })
   }
   catch (e) {
-    console.log(e)
-    res.status(400).json({ msg: 'Session Expired, Refresh the page to login!' })
+    res.status(400).json({ msg: 'Session Expired, Refresh the page to login!', id: 'SESSION_EXPIRED' })
   }
 }
 

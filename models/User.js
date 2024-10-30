@@ -12,8 +12,7 @@ const UserSchema = new Schema({
   },
   email: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   password: {
     type: String,
@@ -61,7 +60,15 @@ const UserSchema = new Schema({
   },
   current_token: {
     type: String
-  }
+  },
+  otp: {
+    type: String,
+    default: '',
+  },
+  verified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // //User: the name of this model

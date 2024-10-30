@@ -108,7 +108,6 @@ router.post("/", async (req, res) => {
     res.status(200).json(newContact)
 
   } catch (err) {
-    console.log(err)
 
     if (err.name === "ValidationError") {
       return res.status(400).send(err.errors)
@@ -143,19 +142,20 @@ router.put('/:id', auth, async (req, res) => {
     const newMessage = await Contact.updateOne(
       { "_id": req.params.id },
       { $push: { "replies": req.body } },
-      { new: true }
-    )
+      { new: true })
 
-    // Send Reply email
-    sendEmail(
-      req.body.to_contact,
-      "New reply",
-      {
-        name: req.body.to_contact_name,
-        question: req.body.contact_question,
-        answer: req.body.message,
-      },
-      "./template/reply.handlebars")
+    if (!newMessage) throw Error('Something went wrong while trying to update the contact')
+
+    // // Send Reply email
+    // sendEmail(
+    //   req.body.to_contact,
+    //   "New reply",
+    //   {
+    //     name: req.body.to_contact_name,
+    //     question: req.body.contact_question,
+    //     answer: req.body.message,
+    //   },
+    //   "./template/reply.handlebars")
 
     // send reply to server
     res.status(200).json(req.body)
@@ -171,19 +171,13 @@ router.put('/:id', auth, async (req, res) => {
 // @route delete a Contact
 // @route Private: Accessed by authorization
 router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
-console.log("Deleting contact")
+  
   try {
     const contact = await Contact.findById(req.params.id)
-
     if (!contact) throw Error('No contact found')
-
     const removed = await Contact.deleteOne({ _id: req.params.id })
-
     if (!removed) throw Error('Something went wrong while trying to delete the contact')
-
-    console.log("Deleted!")
     res.status(200).json({ success: true })
-
   } catch (err) {
     res.status(400).json({ msg: err.message, success: false })
   }

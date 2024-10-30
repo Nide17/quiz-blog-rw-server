@@ -87,7 +87,6 @@ router.post('/', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
         })
 
     } catch (err) {
-        console.log(err)
         res.status(400).json({ msg: err.message })
     }
 })
@@ -130,7 +129,6 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
 
         if (!result)
             throw Error('Something went wrong while deleting!')
-        console.log(result)
 
         res.status(200).json(result)
 

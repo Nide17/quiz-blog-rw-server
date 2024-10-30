@@ -38,23 +38,19 @@ const QuestionSchema = new Schema({
     },
     category: {
         type: Schema.Types.ObjectId,
-        ref: 'category',
-        unique: true
+        ref: 'category'
     },
     quiz: {
         type: Schema.Types.ObjectId,
-        ref: 'quiz',
-        unique: true
+        ref: 'quiz'
     },
     created_by: {
         type: Schema.Types.ObjectId,
-        ref: 'user',
-        unique: true
+        ref: 'user'
     },
     last_updated_by: {
         type: Schema.Types.ObjectId,
-        ref: 'user',
-        unique: true
+        ref: 'user'
     },
     duration: {
         type: Number,

@@ -39,7 +39,6 @@ router.get('/', async (req, res) => {
         res.status(200).json(blogPosts)
 
     } catch (err) {
-        console.log(err)
         res.status(400).json({ msg: err.message })
     }
 })

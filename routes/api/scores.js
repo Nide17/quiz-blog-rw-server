@@ -86,7 +86,6 @@ router.get('/', authRole(['Creator', 'Admin', 'SuperAdmin']), async (req, res) =
     }
 
   } catch (err) {
-    console.log(err)
     return res.status(400).json({ msg: err.message })
   }
 })
@@ -318,7 +317,6 @@ router.get('/monthly-user', async (req, res) => {
   ]).then(monthlyUser => {
     User.populate(monthlyUser, { path: '_id', select: 'name image' })
       .then(user => {
-        console.log(user)
         if (user.length > 0) {
           res.json({
             uName: user[0]._id && user[0]._id.name,
@@ -390,7 +388,6 @@ router.post('/', auth, async (req, res) => {
       const recentScoreExist = await Score.find({ taken_by }, {}, { sort: { 'test_date': -1 } })
 
       if (existingScore.length > 0) {
-        console.log('existingScore')
         return res.status(400).json({
           msg: 'Score duplicate! You have already saved this score!'
         })
@@ -402,7 +399,6 @@ router.post('/', auth, async (req, res) => {
         let seconds = Math.round((now - testDate) / 1000)
 
         if (seconds < 60) {
-          console.log('recentScoreExist')
           return res.status(400).json({
             msg: 'Score duplicate! You took this quiz in less than a minute ago!'
 
@@ -479,7 +475,6 @@ router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
   }
 
   catch (err) {
-    console.log(err)
     res.status(400).json({
       msg: 'Failed to delete! ' + err.message,
       success: false

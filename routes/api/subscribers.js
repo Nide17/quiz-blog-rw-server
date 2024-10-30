@@ -63,7 +63,6 @@ router.post('/', async (req, res) => {
     res.status(200).json(savedSubscriber)
 
   } catch (err) {
-    console.log(err)
     res.status(400).json({ msg: err.message, status: 400, id: 'SUBSCRIBE_ERR' })
   }
 })

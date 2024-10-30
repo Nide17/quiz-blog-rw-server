@@ -158,30 +158,30 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
 
       // Delete existing image
       if (qnImage && qtn.question_image) {
-      const params = qtn.question_image ?
-        {
-          Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
-          Key: qtn.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
-        } :
-        null
+        const params = qtn.question_image ?
+          {
+            Bucket: process.env.S3_BUCKET || config.get('S3Bucket'),
+            Key: qtn.question_image.split('/').pop() //if any sub folder-> path/of/the/folder.ext
+          } :
+          null
 
-      // Deleting old image
-      try {
-        params ?
-          s3Config.deleteObject(params, (err, data) => {
-            if (err) {
-              console.log(err, err.stack); // an error occurred
-            }
-            else {
-              console.log(params.Key + ' deleted!');
-            }
-          }) : null
+        // Deleting old image
+        try {
+          params ?
+            s3Config.deleteObject(params, (err, data) => {
+              if (err) {
+                console.log(err, err.stack); // an error occurred
+              }
+              else {
+                console.log(params.Key + ' deleted!');
+              }
+            }) : null
 
+        }
+        catch (err) {
+          console.log('ERROR in file Deleting : ' + JSON.stringify(err))
+        }
       }
-      catch (err) {
-        console.log('ERROR in file Deleting : ' + JSON.stringify(err))
-      }
-    }
 
       //Find the question by id and update
       const updatedQuestion = await Question.findByIdAndUpdate({ _id: qtn._id }, {
@@ -196,7 +196,7 @@ router.put('/:id', authRole(['Creator', 'Admin', 'SuperAdmin']), questionUpload.
     }
 
   } catch (err) {
-    
+
     res.status(400).json({
       msg: 'Failed to update! ' + err.message,
       success: false
