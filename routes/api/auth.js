@@ -47,7 +47,7 @@ router.post('/register', async (req, res) => {
   try {
     const user = await User.findOne({ email })
 
-    if (user && (user.verified || user.verified === null || user.verified === undefined)) {
+    if (user && (user.verified || user.verified === undefined || user.verified === null)) {
       return res.status(400).json({ msg: 'User already exists, login instead!', id: 'AUTH_EXIST', status: 400 })
     }
 
@@ -57,21 +57,21 @@ router.post('/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, salt)
     if (!hash) throw Error('Something went wrong hashing the password')
-
+      
     if (user && user.verified === false) {
       await User.findOneAndUpdate({ email }, { name, password: hash, otp })
-      // await sendEmail(user.email,
-      //   "One Time Password (OTP) verification for Quiz Blog account",
-      //   { name: user.name, otp }, "./template/otp.handlebars")
+      await sendEmail(user.email,
+        "One Time Password (OTP) verification for Quiz Blog account",
+        { name: user.name, otp }, "./template/otp.handlebars")
       console.log("Existing: ", email, otp)
     } else {
-      const newUser = new User({ name, email, password: hash, otp })
+      const newUser = new User({ name, email, password: hash, otp, verified: false })
       const savedUser = await newUser.save()
       if (!savedUser) throw Error('Something went wrong saving the user')
 
-      // await sendEmail(savedUser.email,
-      //   "One Time Password (OTP) verification for Quiz Blog account",
-      //   { name: savedUser.name, otp }, "./template/otp.handlebars")
+      await sendEmail(savedUser.email,
+        "One Time Password (OTP) verification for Quiz Blog account",
+        { name: savedUser.name, otp }, "./template/otp.handlebars")
       console.log(email, otp)
     }
 
