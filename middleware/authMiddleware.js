@@ -22,7 +22,7 @@ const auth = async (req, res, next) => {
     next()
 
   } catch (e) {
-    res.status(400).json({ msg: 'Session Expired, Refresh the page to login!' })
+    res.status(400).json({ msg: 'Session Expired, login again!' })
   }
 
 }
@@ -65,7 +65,7 @@ const authRole = (roles) => (req, res, next) => {
     })
   }
   catch (e) {
-    res.status(400).json({ msg: 'Session Expired, Refresh the page to login!', id: 'SESSION_EXPIRED' })
+    res.status(400).json({ msg: 'Session Expired, login again!', id: 'SESSION_EXPIRED' })
   }
 }
 

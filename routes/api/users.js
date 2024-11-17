@@ -83,9 +83,11 @@ router.put('/:id', authRole(['SuperAdmin']), async (req, res) => {
 router.put('/user-details/:id', auth, async (req, res) => {
 
   try {
-    //Find the User by id and update
+    //Find the User by id and update and populate the fields with the new data
     const user = await User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
-    res.status(200).json(user)
+      .populate('school level faculty', '_id title years')
+
+    res.status(200).json({ user, msg: 'Profile updated successfully!' })
 
   } catch (error) {
     res.status(400).json({

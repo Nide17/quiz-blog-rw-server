@@ -1,6 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const { sendEmail } = require("./emails/sendEmail")
+const { convertFromRaw } = require('draft-js')
+const { stateToHTML } = require('draft-js-export-html')
 
 // auth middleware to protect routes
 const { auth, authRole } = require('../../middleware/authMiddleware')
@@ -135,8 +137,11 @@ router.get('/:id', auth, (req, res) => {
 // @route Replying a contact
 // @access Private: accessed by the authenticated user
 router.put('/:id', auth, async (req, res) => {
-
   try {
+    // Convert message from raw to HTML
+    const rawContent = JSON.parse(req.body.message)
+    const contentState = convertFromRaw(rawContent)
+    const htmlMessage = stateToHTML(contentState)
 
     // Update the Quiz on Contact updating
     const newMessage = await Contact.updateOne(
@@ -146,18 +151,17 @@ router.put('/:id', auth, async (req, res) => {
 
     if (!newMessage) throw Error('Something went wrong while trying to update the contact')
 
-    // // Send Reply email
-    // sendEmail(
-    //   req.body.to_contact,
-    //   "New reply",
-    //   {
-    //     name: req.body.to_contact_name,
-    //     question: req.body.contact_question,
-    //     answer: req.body.message,
-    //   },
-    //   "./template/reply.handlebars")
+    // Send Reply email
+    sendEmail(
+      req.body.to_contact,
+      "New reply",
+      {
+        name: req.body.to_contact_name,
+        question: req.body.contact_question,
+        answer: htmlMessage,
+      },
+      "./template/reply.handlebars")
 
-    // send reply to server
     res.status(200).json(req.body)
   } catch (err) {
     res.status(400).json({
@@ -171,7 +175,7 @@ router.put('/:id', auth, async (req, res) => {
 // @route delete a Contact
 // @route Private: Accessed by authorization
 router.delete('/:id', authRole(['Admin', 'SuperAdmin']), async (req, res) => {
-  
+
   try {
     const contact = await Contact.findById(req.params.id)
     if (!contact) throw Error('No contact found')
